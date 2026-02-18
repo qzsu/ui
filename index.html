@@ -6,7 +6,7 @@
 <title>Product Showcase</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500;600&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
 <style>
 /* ===================== CSS VARIABLES ===================== */
 :root {
@@ -301,23 +301,29 @@ body {
   inset: 0;
   background: rgba(0,0,0,0.6);
   z-index: 500;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
+  overflow-y: auto;
+  padding: 2rem 1rem;
   backdrop-filter: blur(4px);
+  /* center short modals, let tall ones scroll naturally */
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
 }
 #modal-overlay.modal-visible { display: flex; }
 #modal-box {
   background: var(--card-bg);
   border-radius: 8px;
   display: flex;
-  overflow: hidden;
+  overflow: visible;
   position: relative;
-  max-width: 90vw;
+  max-width: min(90vw, 900px);
+  width: 100%;
   transform: scale(0.9);
   opacity: 0;
   transition: transform 0.25s, opacity 0.25s;
-  max-height: 90vh;
+  margin: auto; /* vertically center when content is short */
+  flex-shrink: 0;
 }
 #modal-box.modal-box--open { transform: scale(1); opacity: 1; }
 .modal-close {
@@ -807,8 +813,17 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--accent-color) 40%, transparent); border-radius: 3px; }
 
-/* ===================== THEME EDITOR ===================== */
-#theme-editor-wrap {
+#theme-readonly-note {
+  display: none;
+  background: color-mix(in srgb, var(--accent-color) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-color) 35%, transparent);
+  border-radius: 6px;
+  padding: 0.6rem 0.85rem;
+  font-size: 0.78rem;
+  color: var(--text-color);
+  margin-bottom: 1rem;
+}
+
   border-top: 1px solid color-mix(in srgb, var(--accent-color) 25%, transparent);
   padding-top: 1rem;
   margin-top: 0.5rem;
@@ -962,6 +977,7 @@ body {
 
     <div id="theme-editor-wrap">
       <div class="admin-section-title">Customize Theme</div>
+      <div id="theme-readonly-note">🔒 Built-in themes are read-only. Click <strong>+ Create New Theme</strong> to inherit and customize.</div>
       <div id="theme-editor">
         <div class="admin-form-group">
           <label>Theme Name</label>
@@ -1108,17 +1124,17 @@ const DEFAULT_CONFIG = {
       modalTitleSize: '1.75', modalDescSize: '1', modalImgWidth: '48',
       footerFontSize: '0.875', footerTagline: ''
     },
-    brutalist: {
-      name: 'Brutalist Dark',
-      pageBg: '#0a0a0a', cardBg: '#111111', textColor: '#ffffff',
-      accentColor: '#00ff00', deepColor: '#00ff00',
-      btnBg: '#00ff00', btnText: '#0a0a0a', btnHoverBg: '#ffffff', btnHoverText: '#0a0a0a',
-      footerBg: '#000000', footerText: '#00ff00',
-      displayFont: "'Courier New', monospace", bodyFont: "'Courier New', monospace",
-      titleSize: '1', descSize: '0.8', descClamp: '3',
-      columns: '4', gap: '1', itemsPerPage: '16', cardRadius: '0', aspectRatio: '4/3',
-      modalStyle: 'top-down', modalWidth: '90%', modalHeight: '90%',
-      modalTitleSize: '2', modalDescSize: '1', modalImgWidth: '100',
+    noir: {
+      name: 'Noir Elegance',
+      pageBg: '#0f0f13', cardBg: '#1a1a22', textColor: '#c8c0b4',
+      accentColor: '#b89a6a', deepColor: '#f0e8d8',
+      btnBg: '#b89a6a', btnText: '#0f0f13', btnHoverBg: '#f0e8d8', btnHoverText: '#0f0f13',
+      footerBg: '#0a0a0d', footerText: '#b89a6a',
+      displayFont: "'Cormorant Garamond', serif", bodyFont: "'Jost', sans-serif",
+      titleSize: '1.1', descSize: '0.875', descClamp: '2',
+      columns: '3', gap: '1.25', itemsPerPage: '12', cardRadius: '2', aspectRatio: '3/4',
+      modalStyle: 'side-by-side', modalWidth: '880px', modalHeight: '90vh',
+      modalTitleSize: '2', modalDescSize: '1', modalImgWidth: '50',
       footerFontSize: '0.875', footerTagline: ''
     }
   },
@@ -1325,23 +1341,22 @@ function parseTxt(text) {
   let valueLines = [];
 
   for (const line of lines) {
+    // A key is a line that ends with ':' (optional trailing whitespace)
     const keyMatch = line.match(/^([a-zA-Z0-9_ ]+):\s*$/);
     if (keyMatch) {
-      if (currentKey && valueLines.length) {
-        result[currentKey.trim()] = valueLines.join('\n').trim();
+      // Save previous key
+      if (currentKey !== null) {
+        result[currentKey] = valueLines.join('\n').trim();
       }
-      currentKey = keyMatch[1].toLowerCase().trim();
+      currentKey = keyMatch[1].trim().toLowerCase();
       valueLines = [];
-    } else if (line.includes(':') && !currentKey) {
-      // inline key: value
-      const [k, ...rest] = line.split(':');
-      result[k.trim().toLowerCase()] = rest.join(':').trim();
     } else if (currentKey !== null) {
       valueLines.push(line);
     }
   }
-  if (currentKey && valueLines.length) {
-    result[currentKey.trim()] = valueLines.join('\n').trim();
+  // Save last key
+  if (currentKey !== null) {
+    result[currentKey] = valueLines.join('\n').trim();
   }
   return result;
 }

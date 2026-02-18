@@ -32,7 +32,7 @@ export function buildThemeGrid(config, onSwitch, onDelete) {
   const themes = config.themes || {};
   Object.entries(themes).forEach(([id, theme]) => {
     const active = id === config.currentTheme;
-    const isBuiltin = id === 'editorial' || id === 'brutalist';
+    const isBuiltin = id === 'editorial' || id === 'noir';
     const card = document.createElement('div');
     card.className = 'theme-card' + (active ? ' theme-card--active' : '');
     card.innerHTML = `

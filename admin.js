@@ -21,10 +21,9 @@ export function initAdmin(config, callbacks) {
   setupDesignTab();
   setupThemeTab();
   setupFolderTab(callbacks.onFolderLoad);
-  // setupFieldsTab();
-  setupContactTab();
   setupFooterButtons();
   populateAdmin();
+  // Note: renderFieldsTab() is called inside populateAdmin()
 }
 
 function setupAdminToggle() {
@@ -60,6 +59,7 @@ function populateAdmin() {
   const theme = _config.themes[_config.currentTheme] || {};
   populateThemeEditor(theme);
   setupColorSyncs();
+  setEditorReadOnly(isBuiltin(_config.currentTheme));
 
   // Contact tab
   ['email','phone','whatsapp','wechat','telegram','instagram','website'].forEach(f => {
@@ -86,23 +86,50 @@ function setupDesignTab() {
   });
 }
 
+const BUILTIN_THEMES = ['editorial', 'noir'];
+
+function isBuiltin(id) {
+  return BUILTIN_THEMES.includes(id);
+}
+
+function setEditorReadOnly(readonly) {
+  const editor = document.getElementById('theme-editor');
+  if (!editor) return;
+  editor.querySelectorAll('input, select, textarea').forEach(el => {
+    el.disabled = readonly;
+    el.style.opacity = readonly ? '0.55' : '';
+    el.style.cursor = readonly ? 'not-allowed' : '';
+  });
+  const note = document.getElementById('theme-readonly-note');
+  if (note) note.style.display = readonly ? 'block' : 'none';
+}
+
 function setupThemeTab() {
   document.getElementById('create-theme-btn')?.addEventListener('click', () => {
-    const name = prompt('Theme name:');
+    const name = prompt('New theme name:');
     if (!name) return;
-    const id = 'custom-' + name.toLowerCase().replace(/\s+/g, '-');
-    const base = { ..._config.themes[_config.currentTheme] };
+
+    // Ask which built-in theme to inherit
+    const builtinNames = BUILTIN_THEMES.map(id => _config.themes[id]?.name || id);
+    const pick = prompt(`Inherit from which base theme?\n${BUILTIN_THEMES.map((id, i) => `${i + 1}. ${builtinNames[i]}`).join('\n')}\n\nEnter number:`);
+    const idx = parseInt(pick) - 1;
+    const baseId = (idx >= 0 && idx < BUILTIN_THEMES.length) ? BUILTIN_THEMES[idx] : _config.currentTheme;
+    const base = { ..._config.themes[baseId] };
     base.name = name;
+
+    const id = 'custom-' + name.toLowerCase().replace(/\s+/g, '-');
     _config.themes[id] = base;
     _config.currentTheme = id;
     applyTheme(base);
     refreshThemeGrid();
     populateThemeEditor(base);
     setupColorSyncs();
+    setEditorReadOnly(false);
   });
 
-  // Theme editor live updates
+  // Theme editor live updates — blocked for built-ins
   document.getElementById('theme-editor')?.addEventListener('input', (e) => {
+    if (isBuiltin(_config.currentTheme)) return; // read-only guard
     const id = e.target.id;
     if (!id.startsWith('te-')) return;
     const field = id.replace('te-', '').replace('-picker', '');
@@ -138,6 +165,7 @@ function refreshThemeGrid() {
       applyTheme(_config.themes[id]);
       populateThemeEditor(_config.themes[id]);
       setupColorSyncs();
+      setEditorReadOnly(isBuiltin(id));
       refreshThemeGrid();
       if (_rerender) _rerender();
     },
@@ -251,10 +279,6 @@ export function updateFieldsTab(allFields, config) {
   });
   renderFieldsTab();
   updateSessionInfo(config);
-}
-
-function setupContactTab() {
-  // No extra setup needed — just plain inputs
 }
 
 function setupFooterButtons() {

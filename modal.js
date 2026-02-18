@@ -19,7 +19,7 @@ export function openModal(product, theme) {
   const isTopDown = theme.modalStyle === 'top-down';
 
   box.style.width = theme.modalWidth;
-  box.style.maxHeight = theme.modalHeight;
+  box.style.maxHeight = '';           // remove height constraint — overlay scrolls instead
   box.style.flexDirection = isTopDown ? 'column' : 'row';
   box.style.borderRadius = (parseInt(theme.cardRadius) + 4) + 'px';
 
@@ -35,12 +35,16 @@ export function openModal(product, theme) {
 
   const extraFields = ordered.filter(k => !['title','price','description'].includes(k));
 
+  const imgStyle = isTopDown
+    ? 'width:100%;max-height:60vh;'
+    : `width:${theme.modalImgWidth}%;flex-shrink:0;`;
+
   box.innerHTML = `
     <button class="modal-close" id="modal-close-btn">×</button>
-    <div class="modal-img-wrap" style="${isTopDown ? 'width:100%' : `width:${theme.modalImgWidth}%;flex-shrink:0`}">
+    <div class="modal-img-wrap" style="${imgStyle}">
       <img src="${product._src}" alt="${title}" style="width:100%;height:100%;object-fit:contain;display:block;" />
     </div>
-    <div class="modal-content" style="flex:1;overflow-y:auto;padding:2rem;">
+    <div class="modal-content" style="flex:1;padding:2rem;">
       <h2 style="font-family:var(--display-font);font-size:${theme.modalTitleSize}rem;color:var(--deep-color);margin:0 0 0.5rem">${title}</h2>
       ${price ? `<div style="font-size:1.2rem;font-weight:700;color:var(--accent-color);margin-bottom:1rem">${price}</div>` : ''}
       ${desc ? `<p style="font-size:${theme.modalDescSize}rem;line-height:1.7;color:var(--text-color);margin-bottom:1.5rem">${desc}</p>` : ''}
