@@ -1,8 +1,8 @@
 {
-  "storeName": "Product Showcase",
-  "heroTitle": "Our Collection",
+  "storeName": "My Product Showcase",
+  "heroTitle": "Collection",
   "heroSub": "Discover something beautiful",
-  "currentTheme": "editorial",
+  "currentTheme": "custom-new",
   "themes": {
     "editorial": {
       "name": "Editorial Warm",
@@ -67,21 +67,57 @@
       "modalImgWidth": "100",
       "footerFontSize": "0.875",
       "footerTagline": ""
+    },
+    "custom-new": {
+      "name": "new",
+      "pageBg": "#f7f4ef",
+      "cardBg": "#ffffff",
+      "textColor": "#3d2b1a",
+      "accentColor": "#c8a97e",
+      "deepColor": "#1a0f05",
+      "btnBg": "#3d2b1a",
+      "btnText": "#f7f4ef",
+      "btnHoverBg": "#c8a97e",
+      "btnHoverText": "#1a0f05",
+      "footerBg": "#3d2b1a",
+      "footerText": "#f7f4ef",
+      "displayFont": "'Playfair Display', serif",
+      "bodyFont": "'Jost', sans-serif",
+      "titleSize": "1.05",
+      "descSize": "0.875",
+      "descClamp": "2",
+      "columns": "4",
+      "gap": "1.5",
+      "itemsPerPage": "16",
+      "cardRadius": "2",
+      "aspectRatio": "1/1",
+      "modalStyle": "top-down",
+      "modalWidth": "80%",
+      "modalHeight": "80%",
+      "modalTitleSize": "1.75",
+      "modalDescSize": "1",
+      "modalImgWidth": "48",
+      "footerFontSize": "1.35",
+      "footerTagline": "Contact me at"
     }
   },
   "showDesc": true,
   "email": "",
   "phone": "",
   "whatsapp": "",
-  "wechat": "",
-  "telegram": "",
+  "wechat": "wx123",
+  "telegram": "@hey",
   "instagram": "",
   "website": "",
-  "folderName": "",
+  "folderName": "Camera Roll",
   "fieldVis": {
     "title": true,
     "price": true,
     "description": true
   },
-  "fieldOrder": ["title", "price", "description"]
+  "fieldOrder": [
+    "title",
+    "price",
+    "description"
+  ]
 }
