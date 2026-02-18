@@ -68,7 +68,7 @@ function renderGrid(products, theme) {
     card.className = 'product-card';
     card.style.animationDelay = (i * 0.04) + 's';
 
-    const title = product.title || product._filename || 'Untitled';
+    const title = product.title;  // always set: from metadata or filename fallback
     const price = product.price || '';
     const desc = _config.showDesc !== false ? (product.description || '') : '';
 

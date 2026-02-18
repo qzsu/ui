@@ -1030,7 +1030,8 @@ body {
         <div class="admin-form-group"><label>Modal Height (vh or %)</label><input type="text" id="te-modalHeight" /></div>
         <div class="admin-form-group"><label>Modal Title Size (rem)</label><input type="number" id="te-modalTitleSize" step="0.05" /></div>
         <div class="admin-form-group"><label>Modal Description Size (rem)</label><input type="number" id="te-modalDescSize" step="0.05" /></div>
-        <div class="admin-form-group"><label>Modal Image Width (%)</label><input type="number" id="te-modalImgWidth" min="20" max="100" /></div>
+        <div class="admin-form-group"><label>Modal Image Width % <small style="opacity:0.6">(side-by-side)</small></label><input type="number" id="te-modalImgWidth" min="20" max="80" /></div>
+        <div class="admin-form-group"><label>Modal Image Height vh <small style="opacity:0.6">(top-down)</small></label><input type="number" id="te-modalImgHeight" min="20" max="80" /></div>
 
         <div class="admin-section-title">Footer</div>
         <div class="admin-form-group"><label>Footer Font Size (rem)</label><input type="number" id="te-footerFontSize" step="0.05" /></div>
@@ -1120,7 +1121,7 @@ const DEFAULT_CONFIG = {
       titleSize: '1.05', descSize: '0.875', descClamp: '2',
       columns: '3', gap: '1.5', itemsPerPage: '12', cardRadius: '4', aspectRatio: '1/1',
       modalStyle: 'side-by-side', modalWidth: '860px', modalHeight: '90vh',
-      modalTitleSize: '1.75', modalDescSize: '1', modalImgWidth: '48',
+      modalTitleSize: '1.75', modalDescSize: '1', modalImgWidth: '48', modalImgHeight: '50',
       footerFontSize: '0.875', footerTagline: ''
     },
     noir: {
@@ -1133,7 +1134,7 @@ const DEFAULT_CONFIG = {
       titleSize: '1.1', descSize: '0.875', descClamp: '2',
       columns: '3', gap: '1.25', itemsPerPage: '12', cardRadius: '2', aspectRatio: '3/4',
       modalStyle: 'side-by-side', modalWidth: '880px', modalHeight: '90vh',
-      modalTitleSize: '2', modalDescSize: '1', modalImgWidth: '50',
+      modalTitleSize: '2', modalDescSize: '1', modalImgWidth: '50', modalImgHeight: '50',
       footerFontSize: '0.875', footerTagline: ''
     }
   },
@@ -1158,7 +1159,7 @@ async function boot() {
   if (isAdmin) setupAdminMode();
   setupDropzone();
   setupViewToggle();
-  initModal(() => config.themes[config.currentTheme] || {});
+  initModal();
 
   // Check folder memory
   if (config.folderName) {
@@ -1303,9 +1304,9 @@ async function loadFolder(dirHandle) {
       Object.assign(product, parsed);
       Object.keys(parsed).forEach(k => allFieldKeys.add(k));
     }
-    // Always ensure a title: from metadata, or derive from filename
+    // Derive title from filename only when metafile has no title field
     if (!product.title) {
-      product.title = baseName.replace(/_/g, ' ');
+      product.title = baseName.replace(/_/g, ' ').replace(/-/g, ' ');
     }
     prods.push(product);
   }
@@ -1341,24 +1342,25 @@ function parseTxt(text) {
   let currentKey = null;
   let valueLines = [];
 
+  const saveCurrentKey = () => {
+    if (currentKey !== null) {
+      const val = valueLines.join('\n').trim();
+      if (val) result[currentKey] = val; // only store non-empty values
+    }
+  };
+
   for (const line of lines) {
-    // A key is a line that ends with ':' (optional trailing whitespace)
+    // A key is a line whose only content is a word ending with ':' (optional trailing whitespace)
     const keyMatch = line.match(/^([a-zA-Z0-9_ ]+):\s*$/);
     if (keyMatch) {
-      // Save previous key
-      if (currentKey !== null) {
-        result[currentKey] = valueLines.join('\n').trim();
-      }
+      saveCurrentKey();
       currentKey = keyMatch[1].trim().toLowerCase();
       valueLines = [];
     } else if (currentKey !== null) {
       valueLines.push(line);
     }
   }
-  // Save last key
-  if (currentKey !== null) {
-    result[currentKey] = valueLines.join('\n').trim();
-  }
+  saveCurrentKey(); // flush last key
   return result;
 }
 

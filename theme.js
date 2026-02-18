@@ -67,7 +67,7 @@ export function populateThemeEditor(theme) {
     'displayFont','bodyFont',
     'titleSize','descSize','descClamp',
     'columns','gap','itemsPerPage','cardRadius','aspectRatio',
-    'modalStyle','modalWidth','modalHeight','modalTitleSize','modalDescSize','modalImgWidth',
+    'modalStyle','modalWidth','modalHeight','modalTitleSize','modalDescSize','modalImgWidth','modalImgHeight',
     'footerFontSize','footerTagline','name'
   ];
   fields.forEach(field => {
@@ -88,7 +88,7 @@ export function readThemeEditor(theme) {
     'displayFont','bodyFont',
     'titleSize','descSize','descClamp',
     'columns','gap','itemsPerPage','cardRadius','aspectRatio',
-    'modalStyle','modalWidth','modalHeight','modalTitleSize','modalDescSize','modalImgWidth',
+    'modalStyle','modalWidth','modalHeight','modalTitleSize','modalDescSize','modalImgWidth','modalImgHeight',
     'footerFontSize','footerTagline','name'
   ];
   const out = { ...theme };
