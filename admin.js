@@ -21,7 +21,7 @@ export function initAdmin(config, callbacks) {
   setupDesignTab();
   setupThemeTab();
   setupFolderTab(callbacks.onFolderLoad);
-  setupFieldsTab();
+  // setupFieldsTab();
   setupContactTab();
   setupFooterButtons();
   populateAdmin();
