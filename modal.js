@@ -18,12 +18,19 @@ export function openModal(product, theme) {
   const box = document.getElementById('modal-box');
   const isTopDown = theme.modalStyle === 'top-down';
 
-  box.style.width = theme.modalWidth;
-  box.style.maxHeight = '';           // remove height constraint — overlay scrolls instead
+  // Apply modal width as max-width on the box (honours px or % values from settings)
+  const mw = theme.modalWidth || '860px';
+  box.style.maxWidth = mw;
   box.style.flexDirection = isTopDown ? 'column' : 'row';
   box.style.borderRadius = (parseInt(theme.cardRadius) + 4) + 'px';
 
-  // Standard fields order
+  // Apply modalHeight as a min-height hint on the overlay padding so short modals still feel intentional
+  // (actual scroll is on overlay — no hard height cap on the box)
+  const mh = theme.modalHeight || '90vh';
+  overlay.style.paddingTop = `calc((100vh - ${mh}) / 2)`;
+  overlay.style.paddingBottom = `calc((100vh - ${mh}) / 2)`;
+
+  // ALL product fields, excluding internals
   const standardOrder = ['title', 'price', 'description'];
   const allKeys = Object.keys(product).filter(k => k !== '_filename' && k !== '_src');
   const custom = allKeys.filter(k => !standardOrder.includes(k));
@@ -32,34 +39,38 @@ export function openModal(product, theme) {
   const title = product.title || product._filename || 'Product';
   const price = product.price || '';
   const desc = product.description || '';
+  const extraFields = ordered.filter(k => !['title', 'price', 'description'].includes(k));
 
-  const extraFields = ordered.filter(k => !['title','price','description'].includes(k));
-
+  // modalImgWidth % is relative to the modal box itself
+  const imgPct = parseInt(theme.modalImgWidth) || 48;
   const imgStyle = isTopDown
-    ? 'width:100%;max-height:60vh;'
-    : `width:${theme.modalImgWidth}%;flex-shrink:0;`;
+    ? 'width:100%;'
+    : `width:${imgPct}%;flex-shrink:0;`;
 
   box.innerHTML = `
     <button class="modal-close" id="modal-close-btn">×</button>
-    <div class="modal-img-wrap" style="${imgStyle}">
-      <img src="${product._src}" alt="${title}" style="width:100%;height:100%;object-fit:contain;display:block;" />
+    <div class="modal-img-wrap" style="${imgStyle}background:color-mix(in srgb, var(--accent-color) 8%, var(--page-bg));">
+      <img src="${product._src}" alt="${title}" style="width:100%;height:100%;object-fit:contain;display:block;min-height:200px;" />
     </div>
-    <div class="modal-content" style="flex:1;padding:2rem;">
-      <h2 style="font-family:var(--display-font);font-size:${theme.modalTitleSize}rem;color:var(--deep-color);margin:0 0 0.5rem">${title}</h2>
+    <div class="modal-content" style="flex:1;min-width:0;padding:2rem 2rem 2rem 2rem;">
+      <h2 style="font-family:var(--display-font);font-size:${theme.modalTitleSize}rem;color:var(--deep-color);margin:0 0 0.5rem;line-height:1.2">${title}</h2>
       ${price ? `<div style="font-size:1.2rem;font-weight:700;color:var(--accent-color);margin-bottom:1rem">${price}</div>` : ''}
-      ${desc ? `<p style="font-size:${theme.modalDescSize}rem;line-height:1.7;color:var(--text-color);margin-bottom:1.5rem">${desc}</p>` : ''}
-      ${extraFields.length ? `<hr style="border:none;border-top:1px solid var(--accent-color);opacity:0.3;margin-bottom:1rem">` : ''}
+      ${desc ? `<p style="font-size:${theme.modalDescSize}rem;line-height:1.7;color:var(--text-color);margin-bottom:1.5rem;white-space:pre-wrap">${desc}</p>` : ''}
+      ${extraFields.length ? `<hr style="border:none;border-top:1px solid var(--accent-color);opacity:0.25;margin-bottom:1rem">` : ''}
       ${extraFields.map(k => `
-        <div style="display:flex;gap:0.75rem;margin-bottom:0.5rem;font-size:0.9rem;">
-          <span style="color:var(--accent-color);font-weight:600;text-transform:capitalize;min-width:90px">${k}:</span>
-          <span style="color:var(--text-color)">${product[k]}</span>
+        <div style="display:flex;gap:0.75rem;margin-bottom:0.6rem;font-size:0.9rem;align-items:flex-start;">
+          <span style="color:var(--accent-color);font-weight:600;text-transform:capitalize;min-width:90px;flex-shrink:0;">${k}:</span>
+          <span style="color:var(--text-color);white-space:pre-wrap;word-break:break-word">${product[k]}</span>
         </div>`).join('')}
-      <div style="margin-top:1.5rem;font-size:0.75rem;color:var(--text-color);opacity:0.4">${product._filename || ''}</div>
+      <div style="margin-top:1.5rem;padding-top:0.75rem;border-top:1px solid color-mix(in srgb,var(--accent-color) 15%,transparent);font-size:0.72rem;color:var(--text-color);opacity:0.4">${product._filename || ''}</div>
     </div>
   `;
 
   document.getElementById('modal-close-btn').addEventListener('click', closeModal);
 
+  // Reset overlay scroll position, lock body scroll
+  overlay.scrollTop = 0;
+  document.body.style.overflow = 'hidden';
   overlay.classList.add('modal-visible');
   requestAnimationFrame(() => box.classList.add('modal-box--open'));
 }
@@ -68,5 +79,10 @@ export function closeModal() {
   const overlay = document.getElementById('modal-overlay');
   const box = document.getElementById('modal-box');
   box.classList.remove('modal-box--open');
-  setTimeout(() => overlay.classList.remove('modal-visible'), 250);
+  setTimeout(() => {
+    overlay.classList.remove('modal-visible');
+    overlay.style.paddingTop = '';
+    overlay.style.paddingBottom = '';
+    document.body.style.overflow = '';
+  }, 250);
 }

@@ -65,7 +65,6 @@ function populateAdmin() {
   ['email','phone','whatsapp','wechat','telegram','instagram','website'].forEach(f => {
     setVal('admin-' + f, _config[f]);
   });
-  setVal('admin-footer-tagline', (_config.themes[_config.currentTheme] || {}).footerTagline || '');
 
   // Fields tab
   renderFieldsTab();

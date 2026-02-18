@@ -302,28 +302,28 @@ body {
   background: rgba(0,0,0,0.6);
   z-index: 500;
   overflow-y: auto;
-  padding: 2rem 1rem;
   backdrop-filter: blur(4px);
-  /* center short modals, let tall ones scroll naturally */
-  display: none;
+  /* use flex column so short modals are top-centered, tall ones scroll */
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
+  padding: 3vh 1rem;
 }
 #modal-overlay.modal-visible { display: flex; }
 #modal-box {
   background: var(--card-bg);
   border-radius: 8px;
   display: flex;
-  overflow: visible;
+  overflow: hidden;
   position: relative;
-  max-width: min(90vw, 900px);
+  /* width and max-width set by JS from theme.modalWidth */
   width: 100%;
   transform: scale(0.9);
   opacity: 0;
   transition: transform 0.25s, opacity 0.25s;
-  margin: auto; /* vertically center when content is short */
   flex-shrink: 0;
+  /* align-self centers in the flex column */
+  align-self: center;
 }
 #modal-box.modal-box--open { transform: scale(1); opacity: 1; }
 .modal-close {
@@ -1080,7 +1080,6 @@ body {
     <div class="admin-form-group"><label>Telegram</label><input type="text" id="admin-telegram" placeholder="username" /></div>
     <div class="admin-form-group"><label>Instagram</label><input type="text" id="admin-instagram" placeholder="username" /></div>
     <div class="admin-form-group"><label>Website</label><input type="url" id="admin-website" placeholder="https://example.com" /></div>
-    <div class="admin-form-group"><label>Footer Tagline</label><input type="text" id="admin-footer-tagline" placeholder="Handmade with love" /></div>
   </div>
 
   <div class="admin-footer">
@@ -1303,8 +1302,10 @@ async function loadFolder(dirHandle) {
       const parsed = parseTxt(text);
       Object.assign(product, parsed);
       Object.keys(parsed).forEach(k => allFieldKeys.add(k));
-    } else {
-      product.title = baseName;
+    }
+    // Always ensure a title: from metadata, or derive from filename
+    if (!product.title) {
+      product.title = baseName.replace(/_/g, ' ');
     }
     prods.push(product);
   }
