@@ -1,1085 +1,1451 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Product Showcase</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
 <style>
-/* Dynamic theme styles injected by JS */
+/* ===================== CSS VARIABLES ===================== */
 :root {
-  --bg:#f7f4ef; --card-bg:#fff; --text:#1c1812; --accent:#c8a97e; --deep:#3d2b1a;
-  --muted:#8a8076; --border:rgba(28,24,18,.1); --shadow:rgba(61,43,26,.13); --img-bg:#ede9e2;
-  --radius:14px; --gap:1.5rem; --cols:3; --title-sz:1.1rem; --desc-sz:.82rem; --desc-ln:2;
-  --hdr-bg:rgba(247,244,239,.93); --contact-bg:#3d2b1a; --contact-fs:.76rem;
-  --modal-title-sz:1.5rem; --modal-desc-sz:.9rem; --modal-img-w:48%;
-  --font-head:'Playfair Display',Georgia,serif; --font-body:'Jost',system-ui,sans-serif;
+  --page-bg: #f7f4ef;
+  --card-bg: #ffffff;
+  --text-color: #3d2b1a;
+  --accent-color: #c8a97e;
+  --deep-color: #1a0f05;
+  --btn-bg: #3d2b1a;
+  --btn-text: #f7f4ef;
+  --btn-hover-bg: #c8a97e;
+  --btn-hover-text: #1a0f05;
+  --footer-bg: #3d2b1a;
+  --footer-text: #f7f4ef;
+  --display-font: 'Playfair Display', serif;
+  --body-font: 'Jost', sans-serif;
+  --title-size: 1.05rem;
+  --desc-size: 0.875rem;
+  --desc-clamp: 2;
+  --columns: 3;
+  --gap: 1.5rem;
+  --card-radius: 4px;
+  --aspect-ratio: 1/1;
+  --footer-font-size: 0.875rem;
+  --admin-w: 380px;
 }
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{font-family:var(--font-body);background:var(--bg);color:var(--text);
-  min-height:100vh;display:flex;flex-direction:column;transition:all .3s}
-::-webkit-scrollbar{width:5px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px}
 
-/* HEADER */
-.site-header{position:sticky;top:0;z-index:200;background:var(--hdr-bg);backdrop-filter:blur(14px);
-  border-bottom:1px solid var(--border);padding:0 2rem;transition:all .3s}
-.header-inner{max-width:1440px;margin:0 auto;display:flex;align-items:center;
-  justify-content:space-between;height:62px;gap:1rem}
-.site-logo{font-family:var(--font-head);font-size:clamp(1.2rem,2.5vw,1.6rem);
-  font-weight:600;letter-spacing:.03em;color:var(--deep);text-decoration:none;flex-shrink:0}
-.header-right{display:flex;align-items:center;gap:.6rem}
-.admin-toggle-btn{display:none;align-items:center;gap:.42rem;background:none;
-  border:1px solid var(--border);padding:.3rem .85rem;border-radius:100px;cursor:pointer;
-  font-family:var(--font-body);font-size:.71rem;color:var(--muted);letter-spacing:.06em;
-  transition:all .25s;text-transform:uppercase}
-.admin-toggle-btn.visible{display:flex}
-.admin-toggle-btn:hover{border-color:var(--accent);color:var(--deep)}
-.admin-toggle-btn.active{background:var(--deep);color:#ede9e2;border-color:var(--deep)}
-.atb-chevron{transition:transform .3s;display:flex}
-.admin-toggle-btn.active .atb-chevron{transform:rotate(180deg)}
-.atb-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0;transition:background .2s}
-.admin-toggle-btn.active .atb-dot{background:rgba(237,233,226,.6)}
+/* ===================== RESET ===================== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--body-font);
+  background: var(--page-bg);
+  color: var(--text-color);
+  transition: background 0.3s, color 0.3s;
+  min-height: 100vh;
+}
 
-/* DROP ZONE */
-#drop-zone{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:1.5rem;padding:4rem 2rem;text-align:center;animation:fadeUp .5s ease both}
-.drop-box{width:min(480px,90vw);border:2px dashed var(--accent);border-radius:20px;
-  padding:3rem 2rem;background:rgba(200,169,126,.05);cursor:pointer;
-  transition:background .2s,border-color .2s;position:relative}
-.drop-box:hover,.drop-box.drag-over{background:rgba(200,169,126,.12);border-color:var(--deep)}
-.drop-icon{font-size:3rem;margin-bottom:1rem;animation:float 3s ease-in-out infinite}
-.drop-box h2{font-family:var(--font-head);font-size:1.6rem;font-weight:600;color:var(--deep);margin-bottom:.5rem}
-.drop-box p{font-size:.88rem;color:var(--muted);line-height:1.6}
-.drop-box p strong{color:var(--text)}
-.drop-input{position:absolute;inset:0;opacity:0;cursor:pointer;font-size:0}
-.supported-formats{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:1.2rem}
-.fmt-tag{font-size:.68rem;padding:3px 9px;background:rgba(200,169,126,.15);color:var(--deep);
-  border-radius:100px;letter-spacing:.06em;text-transform:uppercase;font-weight:500}
-.drop-or{font-size:.8rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
-.demo-btn{background:none;border:1px solid var(--border);padding:.55rem 1.4rem;border-radius:100px;
-  cursor:pointer;font-family:var(--font-body);font-size:.82rem;color:var(--muted);
-  transition:all .2s;letter-spacing:.04em}
-.demo-btn:hover{border-color:var(--accent);color:var(--deep)}
-.folder-reload-notice{width:min(480px,90vw);background:var(--card-bg);
-  border:1px solid var(--border);border-radius:14px;padding:1.1rem 1.3rem;text-align:left}
+/* ===================== HEADER ===================== */
+#site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 2rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent-color) 30%, transparent);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--page-bg);
+  backdrop-filter: blur(8px);
+}
+#store-name-display {
+  font-family: var(--display-font);
+  font-size: 1.35rem;
+  color: var(--deep-color);
+  letter-spacing: 0.02em;
+}
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.view-toggle {
+  display: flex;
+  gap: 0.25rem;
+  background: color-mix(in srgb, var(--text-color) 8%, transparent);
+  border-radius: 6px;
+  padding: 3px;
+}
+.view-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.3rem 0.5rem;
+  border-radius: 4px;
+  color: var(--text-color);
+  font-size: 1rem;
+  opacity: 0.5;
+  transition: all 0.2s;
+}
+.view-btn.active { background: var(--accent-color); color: var(--deep-color); opacity: 1; }
 
-/* EXPLAINER */
-#explainer-screen{display:none;flex:1;flex-direction:column;align-items:center;
-  justify-content:flex-start;padding:3rem 2rem 4rem;gap:0;animation:fadeUp .45s ease both;overflow-y:auto}
-#explainer-screen.visible{display:flex}
-.exp-hero{text-align:center;max-width:560px;margin-bottom:2rem}
-.exp-hero-icon{font-size:2.8rem;margin-bottom:.8rem;animation:float 3s ease-in-out infinite}
-.exp-hero h2{font-family:var(--font-head);font-size:clamp(1.6rem,3.5vw,2.4rem);
-  font-weight:600;color:var(--deep);margin-bottom:.5rem;line-height:1.2}
-.exp-hero p{font-size:.9rem;color:var(--muted);line-height:1.7}
-.exp-folder-name{display:inline-flex;align-items:center;gap:.4rem;
-  background:rgba(200,169,126,.15);border:1px solid var(--accent);
-  padding:.25rem .8rem;border-radius:100px;font-size:.8rem;color:var(--deep);
-  font-weight:500;margin-bottom:1.5rem;letter-spacing:.03em}
-.exp-folder-name svg{width:14px;height:14px;flex-shrink:0}
-.exp-stats{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;margin-bottom:2rem}
-.exp-stat{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;
-  padding:.7rem 1.2rem;text-align:center;min-width:100px}
-.exp-stat-num{font-family:var(--font-head);font-size:1.6rem;font-weight:600;color:var(--deep);line-height:1}
-.exp-stat-lbl{font-size:.68rem;color:var(--muted);margin-top:.25rem;text-transform:uppercase;letter-spacing:.08em}
-.exp-cta{display:flex;flex-direction:column;align-items:center;gap:.9rem;margin-top:2rem}
-.exp-cta-btn{display:flex;align-items:center;gap:.6rem;background:var(--deep);color:#ede9e2;
-  border:none;padding:.85rem 2.2rem;border-radius:100px;cursor:pointer;
-  font-family:var(--font-head);font-size:1rem;font-weight:600;letter-spacing:.04em;
-  transition:opacity .2s;box-shadow:0 6px 24px var(--shadow)}
-.exp-cta-btn:hover{opacity:.85}
-.exp-cta-btn svg{width:18px;height:18px}
-.exp-cta-sub{font-size:.75rem;color:var(--muted);letter-spacing:.04em}
-.exp-back{background:none;border:1px solid var(--border);padding:.45rem 1.1rem;border-radius:100px;
-  cursor:pointer;font-family:var(--font-body);font-size:.75rem;color:var(--muted);transition:all .2s}
-.exp-back:hover{border-color:var(--accent);color:var(--deep)}
+/* ===================== HERO ===================== */
+#hero {
+  text-align: center;
+  padding: 3.5rem 2rem 2rem;
+}
+#hero-title-display {
+  font-family: var(--display-font);
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  color: var(--deep-color);
+  line-height: 1.15;
+  margin-bottom: 0.5rem;
+}
+#hero-sub-display {
+  font-size: 1rem;
+  opacity: 0.65;
+  letter-spacing: 0.04em;
+}
 
-/* MAIN */
-#main-content{display:none;flex:1;flex-direction:column}
-#main-content.visible{display:flex}
-main{flex:1;padding:0 2rem 3rem;max-width:1440px;margin:0 auto;width:100%}
-.page-hero{text-align:center;padding:clamp(2rem,4vw,3.5rem) 1rem clamp(1.5rem,3vw,2rem);animation:fadeUp .5s ease both}
-.page-hero h1{font-family:var(--font-head);font-size:clamp(2rem,5vw,3.8rem);
-  font-weight:400;letter-spacing:.04em;color:var(--deep);line-height:1.15}
-.page-hero h1 em{font-style:italic;color:var(--accent)}
-.page-hero p{margin-top:.6rem;font-size:.85rem;color:var(--muted);letter-spacing:.12em;text-transform:uppercase}
-.toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:.75rem;margin-bottom:1.8rem;
-  padding-bottom:1rem;border-bottom:1px solid var(--border);animation:fadeUp .55s ease both}
-.toolbar-left{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;flex:1}
-.toolbar-right{display:flex;align-items:center;gap:.4rem;margin-left:auto}
-.prod-count{font-size:.75rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
-.view-toggle{display:flex;gap:3px}
-.view-btn{background:none;border:1px solid transparent;padding:5px 7px;border-radius:7px;
-  cursor:pointer;color:var(--text);opacity:.35;transition:all .2s}
-.view-btn.active{opacity:1;border-color:var(--border);background:var(--card-bg)}
-.view-btn svg{width:15px;height:15px;display:block}
+/* ===================== DROP ZONE ===================== */
+#dropzone-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  min-height: 60vh;
+}
+#dropzone {
+  border: 2px dashed color-mix(in srgb, var(--accent-color) 60%, transparent);
+  border-radius: calc(var(--card-radius) * 3px);
+  padding: 4rem 3rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s;
+  max-width: 480px;
+  width: 100%;
+}
+#dropzone:hover, #dropzone.drag-over {
+  border-color: var(--accent-color);
+  background: color-mix(in srgb, var(--accent-color) 8%, transparent);
+  transform: scale(1.01);
+}
+.drop-icon { font-size: 3rem; margin-bottom: 1rem; display: block; }
+.drop-title {
+  font-family: var(--display-font);
+  font-size: 1.4rem;
+  color: var(--deep-color);
+  margin-bottom: 0.5rem;
+}
+.drop-sub { font-size: 0.875rem; opacity: 0.6; }
 
-/* GRID */
-.product-grid{display:grid;grid-template-columns:repeat(var(--cols),1fr);gap:var(--gap)}
-.product-grid.list-mode{grid-template-columns:1fr}
-.p-card{background:var(--card-bg);border-radius:var(--radius);border:1px solid var(--border);
-  overflow:hidden;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.56,.64,1),box-shadow .3s,border-color .3s;
-  animation:cardIn .45s ease both}
-.p-card:hover{transform:translateY(-5px) scale(1.01);box-shadow:0 18px 55px var(--shadow);border-color:var(--accent)}
-.p-card.list-mode{display:flex;flex-direction:row;align-items:stretch}
-.p-card.list-mode:hover{box-shadow:0 6px 24px var(--shadow);border-color:var(--accent);transform:none}
-.card-img{background:var(--img-bg);overflow:hidden;flex-shrink:0;position:relative}
-.p-card.list-mode .card-img{width:160px;aspect-ratio:unset}
-.card-img img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s ease}
-.p-card:hover .card-img img{transform:scale(1.07)}
-.card-img-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2.5rem;opacity:.18}
-.card-body{padding:.9rem 1.1rem 1.1rem;display:flex;flex-direction:column;flex:1;min-width:0}
-.card-title{font-family:var(--font-head);font-size:var(--title-sz);font-weight:600;color:var(--deep);
-  line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:.35rem}
-.card-desc{font-size:var(--desc-sz);color:var(--muted);line-height:1.55;margin-bottom:.5rem;
-  overflow:hidden;display:-webkit-box;-webkit-line-clamp:var(--desc-ln);-webkit-box-orient:vertical;flex:1}
-.card-price{font-family:var(--font-head);font-size:1.05rem;font-weight:600;color:var(--accent);margin-top:.3rem}
-.card-extras{display:flex;flex-wrap:wrap;gap:.2rem .7rem;margin-top:.4rem}
-.card-extra{font-size:.7rem;color:var(--muted);white-space:nowrap}
-.card-extra-key{font-weight:500;text-transform:uppercase;letter-spacing:.05em;font-size:.62rem;opacity:.6;margin-right:2px}
-.empty-msg{grid-column:1/-1;text-align:center;padding:5rem 1rem;opacity:.35}
-.empty-msg h3{font-family:var(--font-head);font-size:1.4rem;margin-top:.5rem}
-.empty-msg svg{width:48px;height:48px}
-.pagination{display:flex;align-items:center;justify-content:center;gap:.35rem;
-  margin-top:3rem;padding-top:2rem;border-top:1px solid var(--border)}
-.pg-btn{min-width:34px;height:34px;padding:0 .45rem;background:var(--card-bg);border:1px solid var(--border);
-  border-radius:7px;cursor:pointer;font-family:var(--font-body);font-size:.82rem;color:var(--text);
-  transition:all .2s;display:flex;align-items:center;justify-content:center}
-.pg-btn:hover:not(:disabled){background:var(--accent);color:#fff;border-color:var(--accent)}
-.pg-btn.cur{background:var(--deep);color:#fff;border-color:var(--deep);font-weight:500}
-.pg-btn:disabled{opacity:.3;cursor:not-allowed}
-.pg-dots{font-size:.75rem;color:var(--muted);padding:0 3px;align-self:flex-end;margin-bottom:6px}
+#reload-notice {
+  display: none;
+  margin-top: 1.5rem;
+  padding: 1rem 1.5rem;
+  background: color-mix(in srgb, var(--accent-color) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-color) 40%, transparent);
+  border-radius: 8px;
+  text-align: center;
+  max-width: 480px;
+  width: 100%;
+}
+#reload-notice p { font-size: 0.875rem; margin-bottom: 0.75rem; }
+#reload-notice button {
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  border: none;
+  padding: 0.5rem 1.25rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: var(--body-font);
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+#reload-notice button:hover { background: var(--btn-hover-bg); color: var(--btn-hover-text); }
 
-/* MODAL */
-.overlay{position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.72);backdrop-filter:blur(8px);
-  display:flex;align-items:center;justify-content:center;padding:1.5rem;
-  opacity:0;pointer-events:none;transition:opacity .3s}
-.overlay.open{opacity:1;pointer-events:all}
-.modal{background:var(--card-bg);border-radius:18px;max-width:860px;width:100%;max-height:90vh;
-  display:flex;flex-direction:column;overflow:hidden;
-  transform:scale(.93) translateY(18px);transition:transform .35s cubic-bezier(.34,1.56,.64,1);
-  box-shadow:0 40px 120px rgba(0,0,0,.28)}
-.overlay.open .modal{transform:scale(1) translateY(0)}
-.modal-hdr{display:flex;align-items:center;justify-content:space-between;
-  padding:1.1rem 1.5rem;border-bottom:1px solid var(--border);flex-shrink:0}
-.modal-hdr h2{font-family:var(--font-head);font-size:var(--modal-title-sz);font-weight:600;color:var(--deep)}
-.close-btn{width:32px;height:32px;background:none;border:1px solid var(--border);border-radius:50%;
-  cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:center;
-  transition:all .2s;flex-shrink:0}
-.close-btn:hover{background:var(--deep);color:#fff;border-color:var(--deep)}
-.modal-body{display:flex;overflow-y:auto;flex:1}
-.modal-img{width:var(--modal-img-w);flex-shrink:0;background:var(--img-bg);display:flex;align-items:center;
-  justify-content:center;overflow:hidden;min-height:280px}
-.modal-img img{max-width:100%;max-height:70vh;object-fit:contain;display:block}
-.modal-info{flex:1;padding:1.5rem 1.8rem;display:flex;flex-direction:column;gap:.85rem;overflow-y:auto}
-.modal-price{font-family:var(--font-head);font-size:1.7rem;font-weight:600;color:var(--accent)}
-.modal-desc{font-size:var(--modal-desc-sz);line-height:1.72;color:var(--muted);white-space:pre-line}
-.modal-divider{height:1px;background:var(--border);margin:.1rem 0}
-.modal-field{display:flex;flex-direction:column;gap:.15rem}
-.modal-field-key{font-size:.63rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:500}
-.modal-field-val{font-size:.88rem;color:var(--text)}
-.modal-filename{font-size:.65rem;color:var(--muted);opacity:.4;margin-top:.5rem}
+/* ===================== MAIN CONTENT ===================== */
+#main-content { display: none; padding: 1.5rem 2rem 3rem; }
 
-/* CONTACT FOOTER */
-.contact-footer{background:var(--contact-bg);padding:1.2rem 2rem;display:none;transition:all .3s}
-.contact-footer.has-links{display:block}
-.contact-footer-inner{max-width:1440px;margin:0 auto;display:flex;align-items:center;
-  justify-content:space-between;flex-wrap:wrap;gap:1rem}
-.contact-tagline{font-family:var(--font-head);font-size:calc(var(--contact-fs) * 0.95);font-style:italic;
-  color:rgba(237,233,226,.45);letter-spacing:.08em;white-space:nowrap;font-weight:500}
-.contact-links-row{display:flex;gap:1.1rem;flex-wrap:wrap;align-items:center}
-.c-link{display:flex;align-items:center;gap:.35rem;font-size:var(--contact-fs);
-  color:rgba(237,233,226,.85);text-decoration:none;transition:color .2s;white-space:nowrap;font-weight:400}
-.c-link:hover{color:#ede9e2}
-.c-link svg{width:13px;height:13px;flex-shrink:0}
-.c-sep{color:rgba(237,233,226,.25);font-size:calc(var(--contact-fs) * 0.85)}
+/* ===================== PRODUCT GRID ===================== */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--columns), 1fr);
+  gap: var(--gap);
+}
+@media (max-width: 900px) { .product-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 540px) { .product-grid { grid-template-columns: 1fr; } }
 
-/* ADMIN PANEL */
-.admin-panel{position:fixed;top:0;right:0;bottom:0;width:420px;max-width:100vw;
-  background:var(--card-bg);border-left:1px solid var(--border);z-index:600;
-  display:flex;flex-direction:column;
-  transform:translateX(100%);transition:transform .4s cubic-bezier(.77,0,.175,1);
-  box-shadow:-8px 0 40px rgba(0,0,0,.08)}
-.admin-panel.open{transform:translateX(0)}
-.ap-hdr{display:flex;align-items:center;justify-content:space-between;
-  padding:1.1rem 1.4rem;border-bottom:1px solid var(--border);flex-shrink:0}
-.ap-hdr h3{font-family:var(--font-head);font-size:1.1rem;font-weight:600;color:var(--deep)}
-.ap-hdr-right{display:flex;align-items:center;gap:.5rem}
-.settings-badge{display:flex;align-items:center;gap:.3rem;font-size:.63rem;color:var(--muted);
-  letter-spacing:.04em;background:var(--bg);padding:3px 8px;border-radius:100px;border:1px solid var(--border)}
-.sbdot{width:5px;height:5px;border-radius:50%;background:#d4a017;flex-shrink:0}
-.sbdot.ok{background:#4aa74a}
-.ap-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto}
-.ap-tab{flex:1;min-width:fit-content;padding:.6rem .7rem;background:none;border:none;
-  font-size:.67rem;text-transform:uppercase;letter-spacing:.07em;cursor:pointer;color:var(--muted);
-  border-bottom:2px solid transparent;transition:all .2s;font-family:var(--font-body);white-space:nowrap}
-.ap-tab.on{color:var(--deep);border-bottom-color:var(--deep)}
-.ap-body{flex:1;overflow-y:auto;padding:1.1rem 1.3rem}
-.tab-pane{display:none;flex-direction:column;gap:1rem}
-.tab-pane.on{display:flex}
-.ap-section{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.9rem 1rem}
-.ap-sec-title{font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:600;margin-bottom:.8rem}
-.fgrp{margin-bottom:.75rem}
-.fgrp:last-child{margin-bottom:0}
-.flabel{display:block;font-size:.73rem;color:var(--muted);margin-bottom:.3rem;font-weight:500}
-.finput,.fselect{width:100%;padding:.45rem .65rem;border:1px solid var(--border);border-radius:8px;
-  background:var(--card-bg);color:var(--text);font-family:var(--font-body);font-size:.82rem;
-  outline:none;transition:border-color .2s}
-.finput:focus,.fselect:focus{border-color:var(--accent)}
-.tog-row{display:flex;align-items:center;justify-content:space-between;font-size:.8rem;margin-bottom:.5rem}
-.tog-row:last-child{margin-bottom:0}
-.tog-lbl{color:var(--text);opacity:.75}
-.tog{position:relative;width:36px;height:20px;flex-shrink:0}
-.tog input{opacity:0;width:0;height:0}
-.tog-sl{position:absolute;inset:0;background:var(--border);border-radius:20px;cursor:pointer;transition:background .2s}
-.tog-sl::after{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;
-  background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
-.tog input:checked+.tog-sl{background:var(--deep)}
-.tog input:checked+.tog-sl::after{transform:translateX(16px)}
+.product-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
 
-.folder-pick-wrap{border:2px dashed var(--border);border-radius:10px;padding:1.2rem;
-  text-align:center;cursor:pointer;transition:all .2s;position:relative}
-.folder-pick-wrap:hover{border-color:var(--accent);background:rgba(200,169,126,.05)}
-.folder-pick-wrap p{font-size:.78rem;color:var(--muted);margin-top:.4rem}
-.folder-pick-wrap strong{color:var(--text)}
-.folder-current-pill{display:flex;align-items:center;gap:.5rem;
-  background:rgba(200,169,126,.1);border:1px solid var(--accent);
-  padding:.5rem .85rem;border-radius:8px;font-size:.78rem;color:var(--deep);margin-bottom:.65rem}
-.folder-current-pill svg{width:14px;height:14px;flex-shrink:0}
-.folder-clear-btn{margin-left:auto;background:none;border:none;cursor:pointer;
-  color:var(--muted);font-size:.7rem;transition:color .2s;padding:0}
-.folder-clear-btn:hover{color:var(--deep)}
+/* ===================== PRODUCT CARD ===================== */
+.product-card {
+  background: var(--card-bg);
+  border-radius: var(--card-radius);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.25s, box-shadow 0.25s;
+  animation: cardEntrance 0.45s both;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+@keyframes cardEntrance {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.product-card:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+}
+.card-img-wrap {
+  aspect-ratio: var(--aspect-ratio);
+  overflow: hidden;
+  background: color-mix(in srgb, var(--accent-color) 10%, var(--page-bg));
+}
+.card-img-wrap img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s;
+}
+.product-card:hover .card-img-wrap img { transform: scale(1.07); }
+.card-body { padding: 1rem; }
+.card-title {
+  font-family: var(--display-font);
+  font-size: var(--title-size);
+  color: var(--deep-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 0.3rem;
+}
+.card-price {
+  color: var(--accent-color);
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 0.4rem;
+}
+.card-desc {
+  font-size: var(--desc-size);
+  line-height: 1.6;
+  color: var(--text-color);
+  opacity: 0.8;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: var(--desc-clamp);
+  -webkit-box-orient: vertical;
+}
+.card-extra-field {
+  font-size: 0.78rem;
+  margin-top: 0.3rem;
+  opacity: 0.7;
+}
+.field-key { color: var(--accent-color); font-weight: 600; margin-right: 0.3rem; text-transform: capitalize; }
 
-.field-list{display:flex;flex-direction:column;gap:.4rem}
-.field-item{display:flex;align-items:center;justify-content:space-between;
-  padding:.45rem .6rem;background:var(--card-bg);border:1px solid var(--border);
-  border-radius:8px;font-size:.8rem;cursor:grab}
-.field-item.dragging{opacity:.35}
-.field-item-l{display:flex;align-items:center;gap:.45rem}
-.drag-h{opacity:.3;font-size:.9rem;cursor:grab}
+/* List card */
+.card-list-img {
+  width: 160px;
+  flex-shrink: 0;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--accent-color) 10%, var(--page-bg));
+}
+.card-list-img img { width: 100%; height: 100%; object-fit: cover; }
+.product-card.product-list > * { display: flex; }
+.product-list .product-card {
+  display: flex;
+  flex-direction: row;
+}
+.card-list-body { padding: 1.25rem; flex: 1; }
 
-.theme-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
-.theme-card{border:2px solid var(--border);border-radius:10px;padding:.8rem;cursor:pointer;
-  transition:all .2s;position:relative}
-.theme-card:hover{border-color:var(--accent);background:rgba(200,169,126,.05)}
-.theme-card.active{border-color:var(--deep);background:rgba(61,43,26,.05)}
-.theme-card.active::after{content:'✓';position:absolute;top:.4rem;right:.4rem;
-  width:18px;height:18px;background:var(--deep);color:#fff;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:bold}
-.theme-name{font-family:var(--font-head);font-size:.88rem;font-weight:600;color:var(--deep);margin-bottom:.4rem}
-.theme-preview{display:flex;gap:3px;margin-bottom:.4rem}
-.theme-swatch{width:16px;height:16px;border-radius:3px;border:1px solid rgba(0,0,0,.1)}
-.theme-info{font-size:.68rem;color:var(--muted)}
+/* ===================== EMPTY STATE ===================== */
+.empty-state {
+  grid-column: 1/-1;
+  text-align: center;
+  padding: 5rem 2rem;
+  opacity: 0.5;
+}
+.empty-icon { font-size: 3rem; margin-bottom: 1rem; }
 
-.ap-footer{padding:.9rem 1.3rem;border-top:1px solid var(--border);
-  display:flex;flex-direction:column;gap:.55rem;flex-shrink:0}
-.ap-footer-btns{display:flex;gap:.6rem}
-.btn-preview{flex:1;padding:.55rem 1rem;background:none;color:var(--accent);
-  border:1px solid var(--accent);border-radius:8px;cursor:pointer;
-  font-family:var(--font-body);font-size:.8rem;font-weight:500;transition:all .2s}
-.btn-preview:hover{background:var(--accent);color:#fff}
-.btn-discard{padding:.55rem 1rem;background:none;color:var(--muted);border:1px solid var(--border);
-  border-radius:8px;cursor:pointer;font-family:var(--font-body);font-size:.8rem;transition:all .2s}
-.btn-discard:hover{border-color:var(--accent);color:var(--deep)}
-.btn-save{flex:1;padding:.55rem 1rem;background:var(--deep);color:#fff;border:none;
-  border-radius:8px;cursor:pointer;font-family:var(--font-body);font-size:.8rem;
-  font-weight:500;letter-spacing:.05em;transition:opacity .2s}
-.btn-save:hover{opacity:.82}
-.save-note{font-size:.67rem;color:var(--muted);text-align:center;line-height:1.55;
-  background:rgba(200,169,126,.07);border:1px solid var(--border);border-radius:7px;padding:.5rem .7rem}
-.save-note strong{color:var(--deep)}
+/* ===================== PAGINATION ===================== */
+#pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-top: 2.5rem;
+  flex-wrap: wrap;
+}
+.page-btn {
+  background: none;
+  border: 1px solid color-mix(in srgb, var(--accent-color) 40%, transparent);
+  color: var(--text-color);
+  border-radius: 4px;
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+  font-family: var(--body-font);
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+.page-btn:hover:not(:disabled) { background: var(--accent-color); color: var(--deep-color); border-color: var(--accent-color); }
+.page-btn--active { background: var(--btn-bg); color: var(--btn-text); border-color: var(--btn-bg); }
+.page-btn:disabled { opacity: 0.3; cursor: default; }
+.page-dots { padding: 0.4rem 0.25rem; opacity: 0.5; font-size: 0.875rem; }
 
-.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(14px);
-  background:var(--deep);color:#ede9e2;padding:.55rem 1.3rem;border-radius:100px;
-  font-size:.8rem;opacity:0;pointer-events:none;transition:all .3s;z-index:2000;
-  white-space:nowrap;max-width:90vw;text-align:center}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* ===================== MODAL ===================== */
+#modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 500;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  backdrop-filter: blur(4px);
+}
+#modal-overlay.modal-visible { display: flex; }
+#modal-box {
+  background: var(--card-bg);
+  border-radius: 8px;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+  max-width: 90vw;
+  transform: scale(0.9);
+  opacity: 0;
+  transition: transform 0.25s, opacity 0.25s;
+  max-height: 90vh;
+}
+#modal-box.modal-box--open { transform: scale(1); opacity: 1; }
+.modal-close {
+  position: absolute;
+  top: 0.75rem; right: 0.75rem;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  z-index: 10;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s;
+}
+.modal-close:hover { background: var(--accent-color); color: var(--deep-color); }
+.modal-img-wrap { overflow: hidden; background: color-mix(in srgb, var(--accent-color) 8%, var(--page-bg)); min-height: 200px; }
 
-.loader{display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:1rem;padding:3rem;color:var(--muted);font-size:.85rem;grid-column:1/-1}
-.spinner{width:28px;height:28px;border:2px solid var(--border);border-top-color:var(--accent);
-  border-radius:50%;animation:spin .8s linear infinite}
+/* ===================== CONTACT FOOTER ===================== */
+#contact-footer {
+  display: none;
+  background: var(--footer-bg);
+  color: var(--footer-text);
+  text-align: center;
+  padding: 1rem 2rem;
+  font-size: var(--footer-font-size);
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+}
+#contact-footer.footer-visible { display: flex; }
+#contact-footer a {
+  color: var(--footer-text);
+  text-decoration: none;
+  opacity: 0.85;
+  transition: opacity 0.2s;
+}
+#contact-footer a:hover { opacity: 1; text-decoration: underline; }
+.footer-sep { opacity: 0.4; }
+#footer-tagline { opacity: 0.6; margin-right: 0.5rem; }
 
-@keyframes fadeUp {from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-@keyframes cardIn {from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-@keyframes spin   {to{transform:rotate(360deg)}}
-@keyframes float  {0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+/* ===================== EXPLAINER OVERLAY ===================== */
+#explainer-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: var(--page-bg);
+  z-index: 300;
+  overflow-y: auto;
+  padding: 2rem;
+  flex-direction: column;
+  align-items: center;
+}
+.exp-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  animation: fadeUp 0.5s both;
+}
+.exp-icon {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 0.75rem;
+  animation: float 3s ease-in-out infinite;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.exp-header h2 {
+  font-family: var(--display-font);
+  font-size: 1.75rem;
+  color: var(--deep-color);
+  margin-bottom: 0.5rem;
+}
+.exp-folder-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: color-mix(in srgb, var(--accent-color) 20%, transparent);
+  border: 1px solid var(--accent-color);
+  border-radius: 20px;
+  padding: 0.25rem 0.85rem;
+  font-size: 0.875rem;
+  color: var(--deep-color);
+}
+.exp-stats {
+  display: flex;
+  gap: 1rem;
+  margin: 1.5rem 0;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.exp-stat {
+  background: var(--card-bg);
+  border-radius: 8px;
+  padding: 0.75rem 1.25rem;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  min-width: 90px;
+}
+.exp-stat-num {
+  font-family: var(--display-font);
+  font-size: 1.75rem;
+  color: var(--accent-color);
+  font-weight: 700;
+}
+.exp-stat-label { font-size: 0.75rem; opacity: 0.65; margin-top: 0.2rem; }
+.exp-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto 2rem;
+}
+.exp-card {
+  background: var(--card-bg);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+  animation: fadeUp 0.5s both;
+}
+.exp-card-icon { font-size: 1.25rem; margin-bottom: 0.4rem; }
+.exp-card h4 { font-size: 0.9rem; color: var(--deep-color); margin-bottom: 0.3rem; }
+.exp-card p { font-size: 0.8rem; opacity: 0.7; line-height: 1.5; }
+.exp-table {
+  width: 100%;
+  max-width: 600px;
+  border-collapse: collapse;
+  margin: 1.5rem auto;
+  font-size: 0.85rem;
+}
+.exp-table td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent-color) 20%, transparent);
+}
+.exp-badge {
+  display: inline-block;
+  background: color-mix(in srgb, var(--accent-color) 20%, transparent);
+  border-radius: 4px;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.75rem;
+  color: var(--deep-color);
+}
+.exp-privacy {
+  background: color-mix(in srgb, #4a90d9 15%, transparent);
+  border: 1px solid color-mix(in srgb, #4a90d9 40%, transparent);
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  max-width: 600px;
+  width: 100%;
+  margin: 0 auto 2rem;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+.exp-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+.btn-primary {
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  border: none;
+  padding: 0.75rem 1.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: var(--body-font);
+  font-size: 1rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+.btn-primary:hover { background: var(--btn-hover-bg); color: var(--btn-hover-text); }
+.btn-secondary {
+  background: none;
+  color: var(--text-color);
+  border: 1px solid color-mix(in srgb, var(--text-color) 30%, transparent);
+  padding: 0.75rem 1.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: var(--body-font);
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+.btn-secondary:hover { border-color: var(--accent-color); color: var(--accent-color); }
 
-@media(max-width:860px){.modal-body{flex-direction:column}.modal-img{width:100%!important;min-height:220px}:root{--cols:2}}
-@media(max-width:560px){:root{--cols:1}main{padding:0 1rem 2rem}.admin-panel{width:100%}.site-header{padding:0 1rem}.contact-footer{padding:.9rem 1rem}}
-#aspect-style{}
+/* ===================== ADMIN PANEL ===================== */
+#admin-toggle-btn {
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  border: none;
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
+  cursor: pointer;
+  font-family: var(--body-font);
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+#admin-toggle-btn:hover { background: var(--accent-color); color: var(--deep-color); }
+#admin-panel {
+  position: fixed;
+  top: 0; right: 0;
+  width: var(--admin-w);
+  height: 100vh;
+  background: var(--card-bg);
+  box-shadow: -4px 0 24px rgba(0,0,0,0.12);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+#admin-panel.admin-open { transform: translateX(0); }
+
+.admin-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent-color) 25%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.admin-header h3 { font-family: var(--display-font); font-size: 1.1rem; color: var(--deep-color); }
+.admin-header-meta { display: flex; align-items: center; gap: 0.5rem; }
+#settings-indicator {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  cursor: help;
+}
+.indicator-green { background: #22c55e; }
+.indicator-amber { background: #f59e0b; }
+
+.admin-tabs {
+  display: flex;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent-color) 25%, transparent);
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+.admin-tab-btn {
+  background: none;
+  border: none;
+  padding: 0.65rem 0.9rem;
+  cursor: pointer;
+  font-family: var(--body-font);
+  font-size: 0.8rem;
+  color: var(--text-color);
+  opacity: 0.6;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+.admin-tab-btn.tab-active { opacity: 1; border-bottom-color: var(--accent-color); color: var(--deep-color); font-weight: 600; }
+
+.admin-tab-pane { display: none; overflow-y: auto; flex: 1; padding: 1.25rem; }
+.admin-tab-pane.tab-active { display: block; }
+
+.admin-form-group { margin-bottom: 1rem; }
+.admin-form-group label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-color);
+  opacity: 0.7;
+  margin-bottom: 0.3rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.admin-form-group input,
+.admin-form-group select,
+.admin-form-group textarea {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--accent-color) 35%, transparent);
+  border-radius: 4px;
+  background: var(--page-bg);
+  color: var(--text-color);
+  font-family: var(--body-font);
+  font-size: 0.875rem;
+  transition: border-color 0.2s;
+}
+.admin-form-group input:focus,
+.admin-form-group select:focus,
+.admin-form-group textarea:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+.color-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.color-row input[type="color"] {
+  width: 36px; height: 36px;
+  padding: 2px;
+  border-radius: 4px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.color-row input[type="text"] { flex: 1; }
+.admin-section-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent-color);
+  margin: 1.25rem 0 0.6rem;
+}
+.admin-section-title:first-child { margin-top: 0; }
+
+/* Theme grid */
+#theme-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.theme-card {
+  border: 2px solid color-mix(in srgb, var(--accent-color) 25%, transparent);
+  border-radius: 8px;
+  padding: 0.75rem;
+  cursor: pointer;
+  position: relative;
+  transition: border-color 0.2s, transform 0.15s;
+}
+.theme-card:hover { border-color: var(--accent-color); transform: translateY(-1px); }
+.theme-card--active { border-color: var(--accent-color); background: color-mix(in srgb, var(--accent-color) 8%, transparent); }
+.theme-swatches { display: flex; gap: 4px; margin-bottom: 0.5rem; }
+.theme-swatches span { width: 18px; height: 18px; border-radius: 3px; border: 1px solid rgba(0,0,0,0.1); flex-shrink: 0; }
+.theme-info strong { font-size: 0.8rem; display: block; }
+.theme-info small { font-size: 0.7rem; opacity: 0.6; }
+.theme-active-badge {
+  position: absolute; top: 6px; right: 6px;
+  background: var(--accent-color);
+  color: var(--deep-color);
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700;
+}
+.theme-delete {
+  position: absolute; top: 4px; right: 4px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* Fields tab */
+#fields-list { display: flex; flex-direction: column; gap: 0.4rem; }
+.field-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.6rem;
+  background: var(--page-bg);
+  border-radius: 4px;
+  font-size: 0.875rem;
+}
+.drag-handle { cursor: grab; opacity: 0.4; font-size: 1rem; flex-shrink: 0; }
+.drag-handle:active { cursor: grabbing; }
+.field-label { flex: 1; text-transform: capitalize; }
+.toggle { position: relative; display: inline-block; width: 36px; height: 20px; flex-shrink: 0; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute; inset: 0;
+  background: color-mix(in srgb, var(--text-color) 20%, transparent);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 14px; height: 14px;
+  left: 3px; top: 3px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+.toggle input:checked + .toggle-slider { background: var(--accent-color); }
+.toggle input:checked + .toggle-slider::before { transform: translateX(16px); }
+
+/* Admin footer buttons */
+.admin-footer {
+  padding: 0.85rem 1.25rem;
+  border-top: 1px solid color-mix(in srgb, var(--accent-color) 25%, transparent);
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+.admin-footer button {
+  flex: 1;
+  padding: 0.55rem 0.5rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: var(--body-font);
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+#admin-preview-btn { background: var(--accent-color); color: var(--deep-color); }
+#admin-preview-btn:hover { filter: brightness(1.1); }
+#admin-discard-btn { background: color-mix(in srgb, var(--text-color) 15%, transparent); color: var(--text-color); }
+#admin-discard-btn:hover { background: color-mix(in srgb, var(--text-color) 25%, transparent); }
+#admin-save-btn { background: var(--btn-bg); color: var(--btn-text); }
+#admin-save-btn:hover { background: var(--btn-hover-bg); color: var(--btn-hover-text); }
+.admin-settings-note {
+  padding: 0.5rem 1.25rem;
+  font-size: 0.72rem;
+  opacity: 0.55;
+  text-align: center;
+  background: color-mix(in srgb, var(--accent-color) 8%, transparent);
+  flex-shrink: 0;
+}
+
+/* Admin folder drop */
+#admin-folder-drop {
+  border: 2px dashed color-mix(in srgb, var(--accent-color) 50%, transparent);
+  border-radius: 8px;
+  padding: 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.875rem;
+}
+#admin-folder-drop:hover, #admin-folder-drop.drag-over {
+  border-color: var(--accent-color);
+  background: color-mix(in srgb, var(--accent-color) 8%, transparent);
+}
+
+/* ===================== TOAST ===================== */
+#toast {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--deep-color);
+  color: var(--btn-text);
+  padding: 0.7rem 1.5rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  opacity: 0;
+  transition: opacity 0.3s, transform 0.3s;
+  z-index: 9999;
+  pointer-events: none;
+  white-space: nowrap;
+}
+#toast.toast-show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ===================== CREATE THEME BTN ===================== */
+#create-theme-btn {
+  width: 100%;
+  padding: 0.6rem;
+  border: 2px dashed color-mix(in srgb, var(--accent-color) 50%, transparent);
+  border-radius: 6px;
+  background: none;
+  color: var(--accent-color);
+  cursor: pointer;
+  font-family: var(--body-font);
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  margin-bottom: 1rem;
+}
+#create-theme-btn:hover { background: color-mix(in srgb, var(--accent-color) 10%, transparent); }
+
+/* ===================== SCROLLBAR STYLING ===================== */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--accent-color) 40%, transparent); border-radius: 3px; }
+
+/* ===================== THEME EDITOR ===================== */
+#theme-editor-wrap {
+  border-top: 1px solid color-mix(in srgb, var(--accent-color) 25%, transparent);
+  padding-top: 1rem;
+  margin-top: 0.5rem;
+}
 </style>
 </head>
 <body>
 
-<header class="site-header">
-  <div class="header-inner">
-    <span class="site-logo" id="js-logo">Product Showcase</span>
-    <div class="header-right">
-      <button class="admin-toggle-btn" id="js-admin-toggle">
-        <div class="atb-dot"></div>
-        <span>Admin</span>
-        <span class="atb-chevron">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><path d="M6 9l6 6 6-6"/></svg>
-        </span>
-      </button>
+<!-- ===================== HEADER ===================== -->
+<header id="site-header">
+  <div id="store-name-display">Product Showcase</div>
+  <div class="header-actions">
+    <div class="view-toggle" id="view-toggle" style="display:none">
+      <button class="view-btn active" id="view-grid-btn" title="Grid view">⊞</button>
+      <button class="view-btn" id="view-list-btn" title="List view">☰</button>
     </div>
+    <!-- Admin button only in ?admin=1 mode -->
   </div>
 </header>
 
-<div id="drop-zone">
-  <label class="drop-box" id="js-drop-box">
-    <div class="drop-icon">🗂</div>
-    <h2>Drop your products folder</h2>
-    <p>Drag &amp; drop your folder here, or <strong>click to select folder</strong>.<br>Images load instantly — no server needed.</p>
-    <div class="supported-formats">
-      <span class="fmt-tag">jpg</span><span class="fmt-tag">jpeg</span><span class="fmt-tag">png</span>
-      <span class="fmt-tag">gif</span><span class="fmt-tag">webp</span><span class="fmt-tag">tiff</span>
-      <span class="fmt-tag">bmp</span><span class="fmt-tag">svg</span>
-    </div>
-    <input type="file" class="drop-input" id="js-folder-input" webkitdirectory directory multiple accept="image/*,.txt">
-  </label>
-  <span class="drop-or">or</span>
-  <button class="demo-btn" id="js-demo-btn">Load demo products</button>
-</div>
+<!-- ===================== HERO ===================== -->
+<section id="hero">
+  <h1 id="hero-title-display">Our Collection</h1>
+  <p id="hero-sub-display">Discover something beautiful</p>
+</section>
 
-<div id="explainer-screen">
-  <div class="exp-hero">
-    <div class="exp-hero-icon">✅</div>
-    <h2>Folder scanned — ready to view</h2>
-    <p>Your products are loaded into browser memory. Nothing uploaded to any server.</p>
+<!-- ===================== DROP ZONE ===================== -->
+<div id="dropzone-wrap">
+  <div id="dropzone">
+    <span class="drop-icon">🗂️</span>
+    <div class="drop-title">Drop your product folder here</div>
+    <p class="drop-sub">or click to browse — JPG, PNG, GIF, WebP, SVG, BMP, TIFF supported</p>
   </div>
-  <div class="exp-folder-name">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
-    <span id="exp-folder-label">your-folder</span>
-  </div>
-  <div class="exp-stats" id="exp-stats"></div>
-  <div class="exp-cta">
-    <button class="exp-cta-btn" id="exp-continue-btn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-      View my products
-    </button>
-    <div class="exp-cta-sub" id="exp-cta-count">Loading…</div>
-    <button class="exp-back" id="exp-back-btn">← Choose a different folder</button>
+  <div id="reload-notice">
+    <p>📁 Previous folder remembered: <strong id="reload-folder-name">—</strong></p>
+    <button id="reload-btn">Re-select same folder</button>
   </div>
 </div>
 
-<div id="main-content">
-  <main>
-    <div class="page-hero">
-      <h1 id="js-hero-h1">Our <em>Collection</em></h1>
-      <p id="js-hero-sub">Discover something beautiful</p>
-    </div>
-    <div class="toolbar">
-      <div class="toolbar-left">
-        <span class="prod-count" id="js-count">0 products</span>
-      </div>
-      <div class="toolbar-right">
-        <div class="view-toggle">
-          <button class="view-btn active" id="js-grid-btn" title="Grid">
-            <svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
-          </button>
-          <button class="view-btn" id="js-list-btn" title="List">
-            <svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="2" width="14" height="3" rx="1"/><rect x="1" y="7" width="14" height="3" rx="1"/><rect x="1" y="12" width="14" height="3" rx="1"/></svg>
-          </button>
-        </div>
-      </div>
-    </div>
-    <div class="product-grid" id="js-grid"></div>
-    <div class="pagination" id="js-pagination"></div>
-  </main>
-</div>
+<!-- ===================== MAIN CONTENT ===================== -->
+<main id="main-content">
+  <div id="product-grid" class="product-grid"></div>
+  <div id="pagination"></div>
+</main>
 
-<footer class="contact-footer" id="js-contact-footer">
-  <div class="contact-footer-inner">
-    <span class="contact-tagline" id="js-contact-tagline">Get in touch</span>
-    <div class="contact-links-row" id="js-contact-links"></div>
-  </div>
+<!-- ===================== CONTACT FOOTER ===================== -->
+<footer id="contact-footer">
+  <span id="footer-tagline"></span>
+  <!-- contact links injected by JS -->
 </footer>
 
-<div class="overlay" id="js-overlay">
-  <div class="modal">
-    <div class="modal-hdr">
-      <h2 id="js-modal-title">Product</h2>
-      <button class="close-btn" id="js-modal-close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+<!-- ===================== MODAL ===================== -->
+<div id="modal-overlay">
+  <div id="modal-box"></div>
+</div>
+
+<!-- ===================== EXPLAINER OVERLAY ===================== -->
+<div id="explainer-overlay">
+  <div class="exp-header">
+    <span class="exp-icon">✅</span>
+    <h2>Folder scanned — ready to view</h2>
+    <div class="exp-folder-badge">📁 <span id="exp-folder-name">—</span></div>
+  </div>
+
+  <div class="exp-stats">
+    <div class="exp-stat">
+      <div class="exp-stat-num" id="exp-img-count">0</div>
+      <div class="exp-stat-label">Images</div>
     </div>
-    <div class="modal-body">
-      <div class="modal-img" id="js-modal-img"></div>
-      <div class="modal-info" id="js-modal-info"></div>
+    <div class="exp-stat">
+      <div class="exp-stat-num" id="exp-txt-count">0</div>
+      <div class="exp-stat-label">Metadata .txt</div>
     </div>
+    <div class="exp-stat">
+      <div class="exp-stat-num" id="exp-total-count">0</div>
+      <div class="exp-stat-label">Total files</div>
+    </div>
+    <div class="exp-stat">
+      <div class="exp-stat-num" id="exp-skipped-count">0</div>
+      <div class="exp-stat-label">Skipped</div>
+    </div>
+  </div>
+
+  <div class="exp-cards">
+    <div class="exp-card"><div class="exp-card-icon">🖼️</div><h4>Images & Loading</h4><p>Files are read directly into browser memory via the File System Access API. Supported: JPG, PNG, GIF, WebP, TIFF, BMP, SVG. Never uploaded.</p></div>
+    <div class="exp-card"><div class="exp-card-icon">📄</div><h4>Product Metadata</h4><p>Add a .txt file with the same name as your image. Use key: / value pairs for title, price, description, and any custom fields.</p></div>
+    <div class="exp-card"><div class="exp-card-icon">💾</div><h4>Settings File</h4><p>All settings are stored in settings.json beside this HTML file. Downloaded when you save from the admin panel.</p></div>
+    <div class="exp-card"><div class="exp-card-icon">⚙️</div><h4>Admin Panel</h4><p>Hidden by default. Add ?admin=1 to the URL to reveal the admin button for customizing themes, fields, and contact info.</p></div>
+    <div class="exp-card"><div class="exp-card-icon">🎨</div><h4>Theme System</h4><p>2 built-in themes: Editorial Warm and Brutalist Dark. Create and customize unlimited custom themes with full color, typography, and layout control.</p></div>
+    <div class="exp-card"><div class="exp-card-icon">🔁</div><h4>Folder Auto-reload</h4><p>Your folder name is remembered. On your next visit, one click re-selects the same folder. Browser security requires user interaction each time.</p></div>
+    <div class="exp-card"><div class="exp-card-icon">🔍</div><h4>Auto Field Detection</h4><p>All keys from all .txt files are auto-discovered. Toggle visibility on cards and drag to reorder — all fields always show in the detail modal.</p></div>
+    <div class="exp-card"><div class="exp-card-icon">📞</div><h4>Contact Footer</h4><p>Add email, phone, WhatsApp, WeChat, Telegram, Instagram, or website links. Footer only appears when at least one field is set.</p></div>
+    <div class="exp-card"><div class="exp-card-icon">📡</div><h4>Network Requests</h4><p>Only Google Fonts is loaded externally. No analytics, no trackers. Fully offline capable once fonts are cached.</p></div>
+  </div>
+
+  <table class="exp-table">
+    <tr><td>🖼️</td><td>Product images & .txt</td><td>Browser memory (temporary)</td><td><span class="exp-badge">Memory only</span></td></tr>
+    <tr><td>⚙️</td><td>Settings, themes, contact</td><td>settings.json on disk</td><td><span class="exp-badge">settings.json</span></td></tr>
+    <tr><td>📤</td><td>Your files & data</td><td>Never uploaded anywhere</td><td><span class="exp-badge">Never uploaded</span></td></tr>
+    <tr><td>🌐</td><td>Fonts (Playfair & Jost)</td><td>Google Fonts CDN</td><td><span class="exp-badge">Google CDN</span></td></tr>
+  </table>
+
+  <div class="exp-privacy">
+    🛡️
+    <span>100% private. Self-contained HTML file. Images, prices, contact details never transmitted. Works fully offline once fonts are cached.</span>
+  </div>
+
+  <div class="exp-actions">
+    <button class="btn-primary" id="exp-view-btn">View my products</button>
+    <button class="btn-secondary" id="exp-back-btn">← Choose different folder</button>
   </div>
 </div>
 
-<aside class="admin-panel" id="js-admin">
-  <div class="ap-hdr">
-    <h3>Admin Settings</h3>
-    <div class="ap-hdr-right">
-      <div class="settings-badge">
-        <div class="sbdot" id="js-sbdot"></div>
-        <span id="js-settings-status">Loading…</span>
-      </div>
-      <button class="close-btn" id="js-close-admin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+<!-- ===================== ADMIN PANEL ===================== -->
+<div id="admin-panel">
+  <div class="admin-header">
+    <h3>⚙ Admin</h3>
+    <div class="admin-header-meta">
+      <span id="settings-indicator" class="indicator-amber" title="No settings.json — using defaults"></span>
     </div>
   </div>
-  <div class="ap-tabs">
-    <button class="ap-tab on" data-tab="design">Design</button>
-    <button class="ap-tab" data-tab="theme">Theme</button>
-    <button class="ap-tab" data-tab="folder">Folder</button>
-    <button class="ap-tab" data-tab="fields">Fields</button>
-    <button class="ap-tab" data-tab="contact">Contact</button>
+
+  <div class="admin-tabs">
+    <button class="admin-tab-btn tab-active" data-tab="design">Design</button>
+    <button class="admin-tab-btn" data-tab="theme">Theme</button>
+    <button class="admin-tab-btn" data-tab="folder">Folder</button>
+    <button class="admin-tab-btn" data-tab="fields">Fields</button>
+    <button class="admin-tab-btn" data-tab="contact">Contact</button>
   </div>
-  <div class="ap-body">
 
-    <div class="tab-pane on" id="tp-design">
-      <div class="ap-section">
-        <div class="ap-sec-title">Site Identity</div>
-        <div class="fgrp"><label class="flabel">Store name</label><input type="text" class="finput" id="ac-storename"></div>
-        <div class="fgrp"><label class="flabel">Page heading</label><input type="text" class="finput" id="ac-herotitle"></div>
-        <div class="fgrp"><label class="flabel">Page subtitle</label><input type="text" class="finput" id="ac-herosub"></div>
-      </div>
+  <!-- DESIGN TAB -->
+  <div class="admin-tab-pane tab-active" id="tab-design">
+    <div class="admin-form-group">
+      <label>Store Name</label>
+      <input type="text" id="admin-store-name" placeholder="Product Showcase" />
     </div>
+    <div class="admin-form-group">
+      <label>Page Heading</label>
+      <input type="text" id="admin-hero-title" placeholder="Our Collection" />
+    </div>
+    <div class="admin-form-group">
+      <label>Page Subtitle</label>
+      <input type="text" id="admin-hero-sub" placeholder="Discover something beautiful" />
+    </div>
+  </div>
 
-    <div class="tab-pane" id="tp-theme">
-      <div class="ap-section">
-        <div class="ap-sec-title">Select Base Theme</div>
-        <div class="theme-grid" id="js-theme-grid"></div>
-      </div>
-      <div class="ap-section">
-        <div class="ap-sec-title">Customize Current Theme</div>
-        <p style="font-size:.72rem;color:var(--muted);margin-bottom:.8rem;line-height:1.5">Changes preview instantly. Save to persist.</p>
-        <div class="fgrp"><label class="flabel">Theme name</label><input type="text" class="finput" id="tc-name"></div>
-        <div class="fgrp"><label class="flabel">Layout columns</label>
-          <select class="fselect" id="tc-cols"><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select>
+  <!-- THEME TAB -->
+  <div class="admin-tab-pane" id="tab-theme">
+    <div id="theme-grid"></div>
+    <button id="create-theme-btn">+ Create New Theme</button>
+
+    <div id="theme-editor-wrap">
+      <div class="admin-section-title">Customize Theme</div>
+      <div id="theme-editor">
+        <div class="admin-form-group">
+          <label>Theme Name</label>
+          <input type="text" id="te-name" />
         </div>
-        <div class="fgrp"><label class="flabel">Items per page</label>
-          <select class="fselect" id="tc-perpage"><option value="6">6</option><option value="9">9</option><option value="12">12</option><option value="16">16</option><option value="24">24</option></select>
+
+        <div class="admin-section-title">Layout</div>
+        <div class="admin-form-group"><label>Columns (2-6)</label><input type="number" id="te-columns" min="2" max="6" /></div>
+        <div class="admin-form-group"><label>Items per Page</label>
+          <select id="te-itemsPerPage">
+            <option>6</option><option>9</option><option>12</option><option>16</option><option>18</option><option>24</option><option>All</option>
+          </select>
         </div>
-      </div>
-    </div>
-
-    <div class="tab-pane" id="tp-folder">
-      <div class="ap-section">
-        <div class="ap-sec-title">Products Folder</div>
-        <p style="font-size:.74rem;color:var(--muted);margin-bottom:.9rem;line-height:1.6">
-          Select your folder. The name saves to settings.json for easy reload next visit.
-        </p>
-        <div id="js-folder-pill-wrap" style="display:none">
-          <div class="folder-current-pill">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
-            <span id="js-folder-pill-name">—</span>
-            <button class="folder-clear-btn" id="js-folder-clear">✕ Clear</button>
-          </div>
+        <div class="admin-form-group"><label>Gap (rem)</label><input type="number" id="te-gap" min="0" max="4" step="0.25" /></div>
+        <div class="admin-form-group"><label>Card Border Radius (px)</label><input type="number" id="te-cardRadius" min="0" max="32" /></div>
+        <div class="admin-form-group"><label>Image Aspect Ratio</label>
+          <select id="te-aspectRatio">
+            <option value="1/1">1:1 Square</option>
+            <option value="4/3">4:3 Landscape</option>
+            <option value="3/4">3:4 Portrait</option>
+            <option value="16/9">16:9 Wide</option>
+          </select>
         </div>
-        <label class="folder-pick-wrap">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="26" height="26" style="color:var(--accent);display:block;margin:0 auto .3rem"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
-          <p><strong>Click to select folder</strong> or drag &amp; drop</p>
-          <input type="file" id="js-admin-folder-input" webkitdirectory directory multiple accept="image/*,.txt" style="position:absolute;inset:0;opacity:0;cursor:pointer;font-size:0">
-        </label>
+
+        <div class="admin-section-title">Colors</div>
+        <div class="admin-form-group"><label>Page Background</label><div class="color-row"><input type="color" id="te-pageBg-picker" /><input type="text" id="te-pageBg" /></div></div>
+        <div class="admin-form-group"><label>Card Background</label><div class="color-row"><input type="color" id="te-cardBg-picker" /><input type="text" id="te-cardBg" /></div></div>
+        <div class="admin-form-group"><label>Text Color</label><div class="color-row"><input type="color" id="te-textColor-picker" /><input type="text" id="te-textColor" /></div></div>
+        <div class="admin-form-group"><label>Accent Color</label><div class="color-row"><input type="color" id="te-accentColor-picker" /><input type="text" id="te-accentColor" /></div></div>
+        <div class="admin-form-group"><label>Deep/Heading Color</label><div class="color-row"><input type="color" id="te-deepColor-picker" /><input type="text" id="te-deepColor" /></div></div>
+        <div class="admin-form-group"><label>Button Background</label><div class="color-row"><input type="color" id="te-btnBg-picker" /><input type="text" id="te-btnBg" /></div></div>
+        <div class="admin-form-group"><label>Button Text</label><div class="color-row"><input type="color" id="te-btnText-picker" /><input type="text" id="te-btnText" /></div></div>
+        <div class="admin-form-group"><label>Button Hover Bg</label><div class="color-row"><input type="color" id="te-btnHoverBg-picker" /><input type="text" id="te-btnHoverBg" /></div></div>
+        <div class="admin-form-group"><label>Button Hover Text</label><div class="color-row"><input type="color" id="te-btnHoverText-picker" /><input type="text" id="te-btnHoverText" /></div></div>
+        <div class="admin-form-group"><label>Footer Background</label><div class="color-row"><input type="color" id="te-footerBg-picker" /><input type="text" id="te-footerBg" /></div></div>
+        <div class="admin-form-group"><label>Footer Text</label><div class="color-row"><input type="color" id="te-footerText-picker" /><input type="text" id="te-footerText" /></div></div>
+
+        <div class="admin-section-title">Typography</div>
+        <div class="admin-form-group"><label>Display Font</label><input type="text" id="te-displayFont" placeholder="'Playfair Display', serif" /></div>
+        <div class="admin-form-group"><label>Body Font</label><input type="text" id="te-bodyFont" placeholder="'Jost', sans-serif" /></div>
+        <div class="admin-form-group"><label>Card Title Size (rem)</label><input type="number" id="te-titleSize" step="0.05" /></div>
+        <div class="admin-form-group"><label>Description Size (rem)</label><input type="number" id="te-descSize" step="0.05" /></div>
+        <div class="admin-form-group"><label>Description Line Clamp</label><input type="number" id="te-descClamp" min="1" max="10" /></div>
+
+        <div class="admin-section-title">Modal</div>
+        <div class="admin-form-group"><label>Modal Style</label>
+          <select id="te-modalStyle"><option value="side-by-side">Side-by-side</option><option value="top-down">Top-down</option></select>
+        </div>
+        <div class="admin-form-group"><label>Modal Width (px or %)</label><input type="text" id="te-modalWidth" /></div>
+        <div class="admin-form-group"><label>Modal Height (vh or %)</label><input type="text" id="te-modalHeight" /></div>
+        <div class="admin-form-group"><label>Modal Title Size (rem)</label><input type="number" id="te-modalTitleSize" step="0.05" /></div>
+        <div class="admin-form-group"><label>Modal Description Size (rem)</label><input type="number" id="te-modalDescSize" step="0.05" /></div>
+        <div class="admin-form-group"><label>Modal Image Width (%)</label><input type="number" id="te-modalImgWidth" min="20" max="100" /></div>
+
+        <div class="admin-section-title">Footer</div>
+        <div class="admin-form-group"><label>Footer Font Size (rem)</label><input type="number" id="te-footerFontSize" step="0.05" /></div>
+        <div class="admin-form-group"><label>Footer Tagline</label><input type="text" id="te-footerTagline" /></div>
       </div>
     </div>
-
-    <div class="tab-pane" id="tp-fields">
-      <div class="ap-section">
-        <div class="ap-sec-title">Field Visibility on Cards</div>
-        <p style="font-size:.72rem;color:var(--muted);margin-bottom:.75rem;line-height:1.5">Auto-detected from .txt files. Drag to reorder.</p>
-        <div class="field-list" id="js-field-list"><p style="font-size:.75rem;color:var(--muted)">Load a folder first.</p></div>
-      </div>
-      <div class="ap-section">
-        <div class="ap-sec-title">Description on cards</div>
-        <div class="tog-row"><span class="tog-lbl">Show description on cards</span><label class="tog"><input type="checkbox" id="ac-showdesc"><span class="tog-sl"></span></label></div>
-      </div>
-    </div>
-
-    <div class="tab-pane" id="tp-contact">
-      <div class="ap-section">
-        <div class="ap-sec-title">Contact Details</div>
-        <p style="font-size:.72rem;color:var(--muted);margin-bottom:.8rem;line-height:1.5">Only filled fields show. Leave blank to hide footer entirely.</p>
-        <div class="fgrp"><label class="flabel">Email</label><input type="email" class="finput" id="ac-email" placeholder="hello@shop.com"></div>
-        <div class="fgrp"><label class="flabel">Phone</label><input type="text" class="finput" id="ac-phone" placeholder="+1 234 567 8900"></div>
-        <div class="fgrp"><label class="flabel">WhatsApp (with country code)</label><input type="text" class="finput" id="ac-whatsapp" placeholder="+12345678900"></div>
-        <div class="fgrp"><label class="flabel">WeChat ID</label><input type="text" class="finput" id="ac-wechat" placeholder="wechat_id"></div>
-        <div class="fgrp"><label class="flabel">Telegram (@username)</label><input type="text" class="finput" id="ac-telegram" placeholder="@username"></div>
-        <div class="fgrp"><label class="flabel">Instagram (@handle)</label><input type="text" class="finput" id="ac-instagram" placeholder="@handle"></div>
-        <div class="fgrp"><label class="flabel">Website</label><input type="url" class="finput" id="ac-website" placeholder="https://yoursite.com"></div>
-      </div>
-    </div>
-
   </div>
-  <div class="ap-footer">
-    <div class="ap-footer-btns">
-      <button class="btn-preview" id="js-preview-btn">👁 Preview</button>
-      <button class="btn-discard" id="js-discard-btn">Discard</button>
-      <button class="btn-save" id="js-save-cfg">Save</button>
+
+  <!-- FOLDER TAB -->
+  <div class="admin-tab-pane" id="tab-folder">
+    <div class="admin-form-group">
+      <label>Current Folder</label>
+      <div style="display:flex;align-items:center;gap:0.5rem;">
+        <span id="admin-current-folder" style="font-size:0.875rem;flex:1">None</span>
+        <button id="admin-folder-clear" style="background:none;border:1px solid color-mix(in srgb, var(--text-color) 30%, transparent);border-radius:4px;padding:0.25rem 0.5rem;cursor:pointer;font-size:0.8rem;color:var(--text-color)">× Clear</button>
+      </div>
     </div>
-    <div class="save-note">Saves to <strong>settings.json</strong> — download and replace beside this HTML file.</div>
+    <div id="admin-folder-drop" style="margin-bottom:1.5rem;">
+      <div style="font-size:1.5rem;margin-bottom:0.4rem">📂</div>
+      <div style="font-weight:600;margin-bottom:0.25rem">Drop folder here</div>
+      <div style="font-size:0.8rem;opacity:0.6">or click to browse</div>
+    </div>
+    <div class="admin-section-title">Session Info</div>
+    <div style="font-size:0.85rem;display:flex;flex-direction:column;gap:0.4rem;">
+      <div>Folder: <strong id="session-folder">None</strong></div>
+      <div>Products: <strong id="session-count">0</strong></div>
+    </div>
   </div>
-</aside>
 
-<div class="toast" id="js-toast"></div>
-<style id="aspect-style"></style>
+  <!-- FIELDS TAB -->
+  <div class="admin-tab-pane" id="tab-fields">
+    <div class="admin-form-group" style="display:flex;align-items:center;justify-content:space-between;">
+      <label style="margin:0">Show description on cards</label>
+      <label class="toggle"><input type="checkbox" id="admin-show-desc" checked><span class="toggle-slider"></span></label>
+    </div>
+    <div class="admin-section-title" style="margin-top:1rem">Field Visibility & Order</div>
+    <div id="fields-list"></div>
+    <p style="font-size:0.75rem;opacity:0.5;margin-top:0.75rem">Drag ⠿ to reorder. All fields always show in the product modal.</p>
+  </div>
 
-<script>
-'use strict';
-const DEFAULTS={storeName:'Product Showcase',heroTitle:'Our Collection',heroSub:'Discover something beautiful',
-  currentTheme:'editorial',themes:{},showDesc:true,email:'',phone:'',whatsapp:'',wechat:'',telegram:'',
-  instagram:'',website:'',folderName:'',fieldVis:{},fieldOrder:[]};
-const IMAGE_EXTS=new Set(['jpg','jpeg','png','gif','webp','tiff','tif','bmp','svg']);
-let cfg={...DEFAULTS};
-let previewCfg=null;
-let products=[];
-let allFields=[];
-let page=1;
-let listMode=false;
-let pendingFileMap=null;
-let pendingFolderName='';
+  <!-- CONTACT TAB -->
+  <div class="admin-tab-pane" id="tab-contact">
+    <div class="admin-form-group"><label>Email</label><input type="email" id="admin-email" placeholder="hello@example.com" /></div>
+    <div class="admin-form-group"><label>Phone</label><input type="tel" id="admin-phone" placeholder="+1 555 000 0000" /></div>
+    <div class="admin-form-group"><label>WhatsApp (with country code)</label><input type="text" id="admin-whatsapp" placeholder="15550000000" /></div>
+    <div class="admin-form-group"><label>WeChat ID</label><input type="text" id="admin-wechat" placeholder="wechat_id" /></div>
+    <div class="admin-form-group"><label>Telegram</label><input type="text" id="admin-telegram" placeholder="username" /></div>
+    <div class="admin-form-group"><label>Instagram</label><input type="text" id="admin-instagram" placeholder="username" /></div>
+    <div class="admin-form-group"><label>Website</label><input type="url" id="admin-website" placeholder="https://example.com" /></div>
+    <div class="admin-form-group"><label>Footer Tagline</label><input type="text" id="admin-footer-tagline" placeholder="Handmade with love" /></div>
+  </div>
 
-(async function boot(){
-  const params=new URLSearchParams(window.location.search);
-  if(params.get('admin')==='1'){
-    document.getElementById('js-admin-toggle').classList.add('visible');
-  }
-  await loadSettings();
-  applyTheme(cfg);
-  renderContact();
-  populateAdmin();
-  if(cfg.folderName) showFolderReloadNotice(cfg.folderName);
-})();
+  <div class="admin-footer">
+    <button id="admin-preview-btn">👁 Preview</button>
+    <button id="admin-discard-btn">Discard</button>
+    <button id="admin-save-btn">💾 Save</button>
+  </div>
+  <div class="admin-settings-note">Saves to <strong>settings.json</strong> — download and replace beside this HTML file.</div>
+</div>
 
-async function loadSettings(){
-  try{
-    const r=await fetch('./settings.json?t='+Date.now());
-    if(!r.ok) throw 0;
-    const d=await r.json();
-    cfg={...DEFAULTS,...d};
-    if(!cfg.themes||!Object.keys(cfg.themes).length){
-      cfg.themes=getDefaultThemes();
-      cfg.currentTheme='editorial';
+<!-- ===================== TOAST ===================== -->
+<div id="toast"></div>
+
+<!-- ===================== MAIN SCRIPT ===================== -->
+<script type="module">
+import { applyTheme, buildThemeGrid, populateThemeEditor, readThemeEditor } from './theme.js';
+import { initModal, openModal } from './modal.js';
+import { initDisplay, setViewMode, setPage } from './product_display.js';
+import { showExplainer, hideExplainer } from './explainer.js';
+import { initAdmin, updateFieldsTab, updateSessionInfo, showToast } from './admin.js';
+
+// =========================================================
+// STATE
+// =========================================================
+const DEFAULT_CONFIG = {
+  storeName: 'Product Showcase',
+  heroTitle: 'Our Collection',
+  heroSub: 'Discover something beautiful',
+  currentTheme: 'editorial',
+  themes: {
+    editorial: {
+      name: 'Editorial Warm',
+      pageBg: '#f7f4ef', cardBg: '#ffffff', textColor: '#3d2b1a',
+      accentColor: '#c8a97e', deepColor: '#1a0f05',
+      btnBg: '#3d2b1a', btnText: '#f7f4ef', btnHoverBg: '#c8a97e', btnHoverText: '#1a0f05',
+      footerBg: '#3d2b1a', footerText: '#f7f4ef',
+      displayFont: "'Playfair Display', serif", bodyFont: "'Jost', sans-serif",
+      titleSize: '1.05', descSize: '0.875', descClamp: '2',
+      columns: '3', gap: '1.5', itemsPerPage: '12', cardRadius: '4', aspectRatio: '1/1',
+      modalStyle: 'side-by-side', modalWidth: '860px', modalHeight: '90vh',
+      modalTitleSize: '1.75', modalDescSize: '1', modalImgWidth: '48',
+      footerFontSize: '0.875', footerTagline: ''
+    },
+    brutalist: {
+      name: 'Brutalist Dark',
+      pageBg: '#0a0a0a', cardBg: '#111111', textColor: '#ffffff',
+      accentColor: '#00ff00', deepColor: '#00ff00',
+      btnBg: '#00ff00', btnText: '#0a0a0a', btnHoverBg: '#ffffff', btnHoverText: '#0a0a0a',
+      footerBg: '#000000', footerText: '#00ff00',
+      displayFont: "'Courier New', monospace", bodyFont: "'Courier New', monospace",
+      titleSize: '1', descSize: '0.8', descClamp: '3',
+      columns: '4', gap: '1', itemsPerPage: '16', cardRadius: '0', aspectRatio: '4/3',
+      modalStyle: 'top-down', modalWidth: '90%', modalHeight: '90%',
+      modalTitleSize: '2', modalDescSize: '1', modalImgWidth: '100',
+      footerFontSize: '0.875', footerTagline: ''
     }
-    setSettingsStatus('ok','settings.json loaded');
-  }catch(e){
-    cfg={...DEFAULTS,themes:getDefaultThemes(),currentTheme:'editorial'};
-    setSettingsStatus('none','No settings.json — using defaults');
-  }
-}
-function setSettingsStatus(state,msg){
-  const dot=document.getElementById('js-sbdot'),txt=document.getElementById('js-settings-status');
-  if(dot) dot.className='sbdot'+(state==='ok'?' ok':'');
-  if(txt) txt.textContent=msg;
-}
-
-function getDefaultThemes(){
-  return{
-    editorial:{name:'Editorial Warm',bgColor:'#f7f4ef',cardColor:'#ffffff',textColor:'#1c1812',accentColor:'#c8a97e',deepColor:'#3d2b1a',
-      fontDisplay:'Playfair Display, Georgia, serif',fontBody:'Jost, system-ui, sans-serif',cols:3,gap:1.5,perPage:12,radius:14,aspect:'1/1',
-      titleSize:1.1,descSize:.82,descLines:2,contactBg:'#3d2b1a',contactFontSize:.76,contactTagline:'Get in touch',
-      modalStyle:'popup',modalTitleSize:1.5,modalDescSize:.9,modalImgSize:'48%'},
-    brutalist:{name:'Brutalist Dark',bgColor:'#0a0a0a',cardColor:'#1a1a1a',textColor:'#e8e8e8',accentColor:'#00ff00',deepColor:'#ffffff',
-      fontDisplay:'Courier New, monospace',fontBody:'Arial, sans-serif',cols:4,gap:.5,perPage:16,radius:0,aspect:'1/1',
-      titleSize:1,descSize:.85,descLines:3,contactBg:'#000000',contactFontSize:.8,contactTagline:'CONTACT',
-      modalStyle:'popup',modalTitleSize:1.8,modalDescSize:1,modalImgSize:'50%'},
-    minimal:{name:'Minimal Light',bgColor:'#ffffff',cardColor:'#fafafa',textColor:'#2a2a2a',accentColor:'#666666',deepColor:'#000000',
-      fontDisplay:'system-ui, sans-serif',fontBody:'system-ui, sans-serif',cols:2,gap:3,perPage:8,radius:2,aspect:'4/3',
-      titleSize:1.3,descSize:.9,descLines:0,contactBg:'#f0f0f0',contactFontSize:.85,contactTagline:'Contact',
-      modalStyle:'popup',modalTitleSize:1.6,modalDescSize:.95,modalImgSize:'55%'},
-    luxury:{name:'Luxury Gold',bgColor:'#1a1510',cardColor:'#2a2318',textColor:'#e8e0d5',accentColor:'#d4af37',deepColor:'#f5e6d3',
-      fontDisplay:'Didot, serif',fontBody:'Helvetica Neue, sans-serif',cols:3,gap:2,perPage:9,radius:8,aspect:'3/4',
-      titleSize:1.2,descSize:.88,descLines:2,contactBg:'#0d0a07',contactFontSize:.78,contactTagline:'Connect with us',
-      modalStyle:'popup',modalTitleSize:1.7,modalDescSize:.92,modalImgSize:'45%'}
-  };
-}
-
-function showFolderReloadNotice(name){
-  const dz=document.getElementById('drop-zone');
-  document.getElementById('folder-reload-notice')?.remove();
-  const el=document.createElement('div');
-  el.id='folder-reload-notice';el.className='folder-reload-notice';
-  el.innerHTML=`<div style="display:flex;align-items:center;gap:.55rem;margin-bottom:.55rem">
-    <span style="font-size:1.1rem">📂</span>
-    <span style="font-family:var(--font-head);font-size:.9rem;font-weight:600;color:var(--deep)">Previous folder remembered</span>
-  </div><p style="font-size:.78rem;color:var(--muted);line-height:1.6">
-    Your settings remember folder <strong style="color:var(--text)">${esc(name)}</strong>. Re-select to reload.
-  </p>`;
-  dz.insertBefore(el,dz.firstChild);
-}
-
-const $dropBox=document.getElementById('js-drop-box');
-const $folderIn=document.getElementById('js-folder-input');
-const $dropZone=document.getElementById('drop-zone');
-const $expl=document.getElementById('explainer-screen');
-const $main=document.getElementById('main-content');
-
-$dropBox.addEventListener('dragenter',e=>{e.preventDefault();$dropBox.classList.add('drag-over')});
-$dropBox.addEventListener('dragleave',()=>$dropBox.classList.remove('drag-over'));
-$dropBox.addEventListener('dragover',e=>e.preventDefault());
-$dropBox.addEventListener('drop',async e=>{
-  e.preventDefault();$dropBox.classList.remove('drag-over');
-  const entries=[...(e.dataTransfer?.items||[])].map(i=>i.webkitGetAsEntry?.()).filter(Boolean);
-  const fold=entries.find(en=>en.isDirectory);
-  pendingFolderName=fold?fold.name:'dropped folder';
-  if(entries.length) await scanEntries(entries);
-});
-$folderIn.addEventListener('change',async e=>{
-  if(!e.target.files.length)return;
-  const fp=e.target.files[0].webkitRelativePath||e.target.files[0].name;
-  pendingFolderName=fp.includes('/')?fp.split('/')[0]:'selected folder';
-  await scanFileList(e.target.files);
-});
-
-document.getElementById('exp-continue-btn').addEventListener('click',async()=>{
-  if(!pendingFileMap)return;showLoader();await processFileMap(pendingFileMap);
-});
-document.getElementById('exp-back-btn').addEventListener('click',()=>{pendingFileMap=null;showDropZone()});
-
-document.getElementById('js-admin-folder-input').addEventListener('change',async e=>{
-  if(!e.target.files.length)return;
-  const fp=e.target.files[0].webkitRelativePath||e.target.files[0].name;
-  pendingFolderName=fp.includes('/')?fp.split('/')[0]:'selected folder';
-  cfg.folderName=pendingFolderName;
-  updateFolderUI(pendingFolderName);
-  await scanFileList(e.target.files);
-  closeAdmin();
-});
-document.getElementById('js-folder-clear').addEventListener('click',()=>{
-  cfg.folderName='';updateFolderUI('');showDropZone();toast('Folder cleared');
-});
-
-function updateFolderUI(name){
-  const wrap=document.getElementById('js-folder-pill-wrap');
-  const nm=document.getElementById('js-folder-pill-name');
-  if(wrap) wrap.style.display=name?'block':'none';
-  if(nm) nm.textContent=name||'—';
-}
-
-async function scanEntries(entries){
-  $dropZone.style.display='none';
-  const map={};await Promise.all(entries.map(e=>collectEntries(e,map)));
-  pendingFileMap=map;showExplainer(map);
-}
-function collectEntries(entry,map){
-  return new Promise(res=>{
-    if(entry.isFile) entry.getFile(f=>{map[f.name]=f;res()},()=>res());
-    else if(entry.isDirectory){
-      const r=entry.createReader();
-      const all=()=>r.readEntries(async b=>{if(!b.length){res();return}await Promise.all(b.map(e=>collectEntries(e,map)));all()},()=>res());
-      all();
-    }else res();
-  });
-}
-async function scanFileList(files){
-  const map={};
-  [...files].forEach(f=>{const n=f.webkitRelativePath?f.webkitRelativePath.split('/').pop():f.name;map[n]=f});
-  pendingFileMap=map;showExplainer(map);
-}
-async function processFileMap(fm){
-  const names=Object.keys(fm);
-  const imgs=names.filter(n=>IMAGE_EXTS.has(n.split('.').pop().toLowerCase()));
-  const txts=new Set(names.filter(n=>n.toLowerCase().endsWith('.txt')));
-  const loaded=await Promise.all(imgs.map(async imgN=>{
-    const base=imgN.replace(/\.[^.]+$/,'');
-    const url=URL.createObjectURL(fm[imgN]);
-    let fields={title:fileToTitle(imgN)};
-    const tk=txts.has(base+'.txt')?base+'.txt':txts.has(base+'.TXT')?base+'.TXT':null;
-    if(tk&&fm[tk]){try{const t=await fm[tk].text();fields={...fields,...parseTxt(t)}}catch{}}
-    return{filename:imgN,objectURL:url,fields};
-  }));
-  loaded.sort((a,b)=>a.filename.localeCompare(b.filename,undefined,{numeric:true}));
-  products=loaded;pendingFileMap=null;
-  cfg.folderName=pendingFolderName;
-  updateFolderUI(pendingFolderName);
-  discoverFields();renderFieldList();
-  page=1;showMainContent();renderGrid();
-  toast(`${products.length} product${products.length!==1?'s':''} loaded`);
-}
-
-function showDropZone(){
-  $dropZone.style.display='flex';$expl.classList.remove('visible');$main.classList.remove('visible');
-  products.forEach(p=>p.objectURL&&URL.revokeObjectURL(p.objectURL));products=[];
-  if(cfg.folderName) showFolderReloadNotice(cfg.folderName);
-}
-function showExplainer(fm){
-  $dropZone.style.display='none';$main.classList.remove('visible');$expl.classList.add('visible');
-  document.getElementById('exp-folder-label').textContent=pendingFolderName;
-  const names=Object.keys(fm);
-  const ic=names.filter(n=>IMAGE_EXTS.has(n.split('.').pop().toLowerCase())).length;
-  const tc=names.filter(n=>n.toLowerCase().endsWith('.txt')).length;
-  document.getElementById('exp-stats').innerHTML=`
-    <div class="exp-stat"><div class="exp-stat-num">${ic}</div><div class="exp-stat-lbl">Images</div></div>
-    <div class="exp-stat"><div class="exp-stat-num">${tc}</div><div class="exp-stat-lbl">Metadata .txt</div></div>
-    <div class="exp-stat"><div class="exp-stat-num">${names.length}</div><div class="exp-stat-lbl">Total files</div></div>`;
-  document.getElementById('exp-cta-count').textContent=`${ic} product${ic!==1?'s':''} will be displayed`;
-  window.scrollTo({top:0,behavior:'smooth'});
-}
-function showLoader(){
-  $dropZone.style.display='none';$expl.classList.remove('visible');$main.classList.add('visible');
-  document.getElementById('js-grid').innerHTML=`<div class="loader"><div class="spinner"></div>Reading files…</div>`;
-}
-function showMainContent(){
-  $dropZone.style.display='none';$expl.classList.remove('visible');$main.classList.add('visible');
-}
-
-document.getElementById('js-demo-btn').addEventListener('click',loadDemo);
-function loadDemo(){
-  products=[
-    {filename:'ceramic.jpg',objectURL:'https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=700&q=80',fields:{title:'Ceramic Bowl',description:'Natural clay. Each piece unique.',price:'$48',material:'Clay',stock:'In Stock'}},
-    {filename:'linen.jpg',objectURL:'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=700&q=80',fields:{title:'Linen Pillow',description:'Belgian linen with feather insert.',price:'$36',size:'45cm',stock:'In Stock'}},
-    {filename:'candles.jpg',objectURL:'https://images.unsplash.com/photo-1608831540955-35094d48694a?w=700&q=80',fields:{title:'Beeswax Candles',description:'Hand-poured pure beeswax.',price:'$22',burnTime:'40 hrs',stock:'Low Stock'}},
-    {filename:'walnut.jpg',objectURL:'https://images.unsplash.com/photo-1593085512500-5d55148d6f0d?w=700&q=80',fields:{title:'Walnut Tray',description:'Solid American walnut.',price:'$89',material:'Walnut',stock:'In Stock'}},
-    {filename:'cotton.jpg',objectURL:'https://images.unsplash.com/photo-1622560480654-d96214fdc887?w=700&q=80',fields:{title:'Cotton Bag',description:'100% organic cotton.',price:'$18',capacity:'12 kg',stock:'In Stock'}},
-    {filename:'terra.jpg',objectURL:'https://images.unsplash.com/photo-1617119664932-4c9e5e7e4e31?w=700&q=80',fields:{title:'Terracotta Planter',description:'Classic terracotta.',price:'$14',diameter:'15cm',stock:'In Stock'}},
-    {filename:'glass.jpg',objectURL:'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=700&q=80',fields:{title:'Glass Carafe',description:'Blown glass with cork.',price:'$54',capacity:'1.2L',stock:'Out of Stock'}},
-    {filename:'wool.jpg',objectURL:'https://images.unsplash.com/photo-1616627547584-bf28cee262db?w=700&q=80',fields:{title:'Wool Throw',description:'Merino wool. Machine washable.',price:'$128',size:'130×170cm',stock:'In Stock'}},
-    {filename:'soap.jpg',objectURL:'https://images.unsplash.com/photo-1584305574647-0cc949a2bb9f?w=700&q=80',fields:{title:'Soap Dish',description:'Handpinched stoneware.',price:'$16',glaze:'Matte White',stock:'In Stock'}},
-    {filename:'rattan.jpg',objectURL:'https://images.unsplash.com/photo-1590422749897-47036da0b0ff?w=700&q=80',fields:{title:'Rattan Basket',description:'Handwoven storage.',price:'$67',origin:'Indonesia',stock:'In Stock'}},
-  ];
-  discoverFields();renderFieldList();
-  page=1;showMainContent();renderGrid();
-  toast('Demo loaded');
-}
-
-function parseTxt(txt){
-  const lines=txt.split('\n').map(l=>l.trim());
-  const res={};let key=null,val=[];
-  const flush=()=>{if(key&&val.length){res[key]=val.join('\n').trim();key=null;val=[]}};
-  for(const line of lines){
-    if(!line){flush();continue}
-    if(/^[a-z0-9_\-\s]+:$/i.test(line)){flush();key=line.slice(0,-1).toLowerCase().trim()}
-    else if(key) val.push(line);
-  }
-  flush();return res;
-}
-
-function discoverFields(){
-  const seen=new Set();
-  products.forEach(p=>Object.keys(p.fields).forEach(k=>seen.add(k)));
-  const std=['title','price','description'];
-  const extra=[...seen].filter(f=>!std.includes(f)).sort();
-  const disc=[...std.filter(f=>seen.has(f)),...extra];
-  const ord=(cfg.fieldOrder||[]).filter(f=>seen.has(f));
-  disc.filter(f=>!ord.includes(f)).forEach(f=>ord.push(f));
-  allFields=ord;cfg.fieldOrder=[...ord];
-  allFields.forEach(f=>{if(cfg.fieldVis[f]===undefined)cfg.fieldVis[f]=true});
-}
-function renderFieldList(){
-  const list=document.getElementById('js-field-list');
-  list.innerHTML='';
-  if(!allFields.length){list.innerHTML='<p style="font-size:.75rem;color:var(--muted)">No fields yet.</p>';return}
-  allFields.forEach(field=>{
-    const item=document.createElement('div');
-    item.className='field-item';item.draggable=true;item.dataset.field=field;
-    const checked=cfg.fieldVis[field]!==false;
-    item.innerHTML=`<div class="field-item-l"><span class="drag-h">⠿</span><span>${cap(field)}</span></div>
-      <label class="tog"><input type="checkbox" ${checked?'checked':''}><span class="tog-sl"></span></label>`;
-    item.querySelector('input').addEventListener('change',e=>{cfg.fieldVis[field]=e.target.checked;renderGrid()});
-    attachDrag(item,list);list.appendChild(item);
-  });
-}
-function attachDrag(el,c){
-  el.addEventListener('dragstart',()=>el.classList.add('dragging'));
-  el.addEventListener('dragend',()=>{el.classList.remove('dragging');cfg.fieldOrder=[...c.querySelectorAll('.field-item')].map(e=>e.dataset.field);allFields=[...cfg.fieldOrder]});
-  el.addEventListener('dragover',e=>{e.preventDefault();const d=c.querySelector('.dragging');if(!d||d===el)return;const r=el.getBoundingClientRect();c.insertBefore(d,e.clientY<r.top+r.height/2?el:el.nextSibling)});
-}
-
-function renderGrid(){
-  const grid=document.getElementById('js-grid');
-  const th=getCurrentTheme();
-  const pp=parseInt(th.perPage)||12;
-  const tot=products.length;
-  const tp=Math.max(1,Math.ceil(tot/pp));
-  page=Math.min(page,tp);
-  const sl=pp>=9999?products:products.slice((page-1)*pp,page*pp);
-  document.getElementById('js-count').textContent=`${tot} product${tot!==1?'s':''} · page ${page}/${tp}`;
-  grid.className='product-grid'+(listMode?' list-mode':'');
-  grid.innerHTML='';
-  if(!sl.length){
-    grid.innerHTML=`<div class="empty-msg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6M9 12h6M9 15h4"/></svg><h3>No products</h3><p>Drop a folder to begin</p></div>`;
-  }else{
-    sl.forEach((p,i)=>{const c=makeCard(p,i);grid.appendChild(c)});
-  }
-  renderPagination(page,tp);
-}
-function makeCard(prod,idx){
-  const card=document.createElement('div');
-  card.className='p-card'+(listMode?' list-mode':'');
-  card.style.animationDelay=`${idx*.035}s`;
-  const title=prod.fields.title||fileToTitle(prod.filename);
-  const desc=prod.fields.description;
-  const price=prod.fields.price;
-  const show=cfg.showDesc!==false;
-  const extras=allFields.filter(f=>cfg.fieldVis[f]!==false&&!['title','description','price'].includes(f)&&prod.fields[f]).slice(0,4);
-  card.innerHTML=`
-    <div class="card-img">${prod.objectURL?`<img src="${prod.objectURL}" alt="${esc(title)}" loading="lazy">`:`<div class="card-img-placeholder">🖼️</div>`}</div>
-    <div class="card-body">
-      <div class="card-title">${esc(title)}</div>
-      ${show&&desc&&cfg.fieldVis['description']!==false?`<div class="card-desc">${esc(desc)}</div>`:''}
-      ${price&&cfg.fieldVis['price']!==false?`<div class="card-price">${esc(price)}</div>`:''}
-      <div class="card-extras">${extras.map(f=>`<span class="card-extra"><span class="card-extra-key">${cap(f)}</span>${esc(prod.fields[f])}</span>`).join('')}</div>
-    </div>`;
-  card.addEventListener('click',()=>openModal(prod));
-  return card;
-}
-
-function renderPagination(cur,tot){
-  const pag=document.getElementById('js-pagination');
-  pag.innerHTML='';if(tot<=1)return;
-  const add=(label,pg,dis,active)=>{
-    const b=document.createElement('button');
-    b.className='pg-btn'+(active?' cur':'');b.textContent=label;b.disabled=dis;
-    b.onclick=()=>{page=pg;renderGrid();scrollTo({top:0,behavior:'smooth'})};
-    pag.appendChild(b);
-  };
-  const dots=()=>{const s=document.createElement('span');s.className='pg-dots';s.textContent='…';pag.appendChild(s)};
-  add('‹',cur-1,cur===1,false);
-  const r=tot<=7?[...Array(tot)].map((_,i)=>i+1):pgRange(cur,tot);
-  r.forEach(p=>p==='…'?dots():add(p,p,false,p===cur));
-  add('›',cur+1,cur===tot,false);
-}
-function pgRange(c,t){const ps=[1];if(c>3)ps.push('…');for(let p=Math.max(2,c-1);p<=Math.min(t-1,c+1);p++)ps.push(p);if(c<t-2)ps.push('…');ps.push(t);return ps}
-
-function openModal(prod){
-  const ov=document.getElementById('js-overlay');
-  const title=prod.fields.title||fileToTitle(prod.filename);
-  document.getElementById('js-modal-title').textContent=title;
-  document.getElementById('js-modal-img').innerHTML=prod.objectURL?`<img src="${prod.objectURL}" alt="${esc(title)}">`:`<div style="font-size:5rem;opacity:.15">🖼️</div>`;
-  const info=document.getElementById('js-modal-info');info.innerHTML='';
-  const ord=allFields.filter(f=>f!=='title'&&prod.fields[f]);
-  const rest=Object.keys(prod.fields).filter(f=>f!=='title'&&!ord.includes(f)&&prod.fields[f]);
-  [...ord,...rest].forEach((field,i)=>{
-    const val=prod.fields[field];if(!val)return;
-    if(i>0&&(field==='description'||ord[i-1]==='price')){const d=document.createElement('div');d.className='modal-divider';info.appendChild(d)}
-    if(field==='price'){const el=document.createElement('div');el.className='modal-price';el.textContent=val;info.appendChild(el)}
-    else if(field==='description'){const el=document.createElement('div');el.className='modal-desc';el.textContent=val;info.appendChild(el)}
-    else{const el=document.createElement('div');el.className='modal-field';el.innerHTML=`<div class="modal-field-key">${cap(field)}</div><div class="modal-field-val">${esc(val)}</div>`;info.appendChild(el)}
-  });
-  const fn=document.createElement('div');fn.className='modal-filename';fn.textContent=prod.filename;info.appendChild(fn);
-  ov.classList.add('open');document.body.style.overflow='hidden';
-}
-function closeModal(){document.getElementById('js-overlay').classList.remove('open');document.body.style.overflow=''}
-document.getElementById('js-modal-close').onclick=closeModal;
-document.getElementById('js-overlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal()});
-
-document.getElementById('js-grid-btn').onclick=()=>{listMode=false;setViewBtns();renderGrid()};
-document.getElementById('js-list-btn').onclick=()=>{listMode=true;setViewBtns();renderGrid()};
-function setViewBtns(){
-  document.getElementById('js-grid-btn').classList.toggle('active',!listMode);
-  document.getElementById('js-list-btn').classList.toggle('active',listMode);
-}
-
-const $admin=document.getElementById('js-admin');
-const $adminBtn=document.getElementById('js-admin-toggle');
-$adminBtn.addEventListener('click',()=>{
-  const open=$admin.classList.contains('open');
-  if(open){closeAdmin()}else{populateAdmin();$admin.classList.add('open');$adminBtn.classList.add('active')}
-});
-document.getElementById('js-close-admin').onclick=closeAdmin;
-function closeAdmin(){$admin.classList.remove('open');$adminBtn.classList.remove('active')}
-
-document.querySelectorAll('.ap-tab').forEach(tab=>{
-  tab.addEventListener('click',()=>{
-    document.querySelectorAll('.ap-tab').forEach(t=>t.classList.remove('on'));
-    document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('on'));
-    tab.classList.add('on');
-    document.getElementById('tp-'+tab.dataset.tab).classList.add('on');
-  });
-});
-
-function populateAdmin(){
-  sv('ac-storename',cfg.storeName);sv('ac-herotitle',cfg.heroTitle);sv('ac-herosub',cfg.heroSub);
-  document.getElementById('ac-showdesc').checked=cfg.showDesc!==false;
-  sv('ac-email',cfg.email||'');sv('ac-phone',cfg.phone||'');sv('ac-whatsapp',cfg.whatsapp||'');
-  sv('ac-wechat',cfg.wechat||'');sv('ac-telegram',cfg.telegram||'');
-  sv('ac-instagram',cfg.instagram||'');sv('ac-website',cfg.website||'');
-  updateFolderUI(cfg.folderName||'');
-  renderThemeGrid();
-  populateThemeCustomizer();
-}
-const sv=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v};
-const gv=id=>{const el=document.getElementById(id);return el?el.value:''};
-
-function renderThemeGrid(){
-  const grid=document.getElementById('js-theme-grid');
-  grid.innerHTML='';
-  Object.keys(cfg.themes).forEach(key=>{
-    const th=cfg.themes[key];
-    const card=document.createElement('div');
-    card.className='theme-card'+(cfg.currentTheme===key?' active':'');
-    card.innerHTML=`
-      <div class="theme-name">${th.name}</div>
-      <div class="theme-preview">
-        <div class="theme-swatch" style="background:${th.bgColor}"></div>
-        <div class="theme-swatch" style="background:${th.cardColor}"></div>
-        <div class="theme-swatch" style="background:${th.accentColor}"></div>
-        <div class="theme-swatch" style="background:${th.deepColor}"></div>
-      </div>
-      <div class="theme-info">${th.cols} cols · ${th.perPage}/page</div>`;
-    card.addEventListener('click',()=>{
-      cfg.currentTheme=key;
-      applyTheme(cfg);
-      renderGrid();
-      renderContact();
-      renderThemeGrid();
-      populateThemeCustomizer();
-    });
-    grid.appendChild(card);
-  });
-}
-
-function populateThemeCustomizer(){
-  const th=getCurrentTheme();
-  sv('tc-name',th.name);
-  sv('tc-cols',th.cols);
-  sv('tc-perpage',th.perPage);
-}
-
-function getCurrentTheme(){
-  return previewCfg?previewCfg.themes[previewCfg.currentTheme]:cfg.themes[cfg.currentTheme];
-}
-
-document.getElementById('js-preview-btn').addEventListener('click',()=>{
-  previewCfg=JSON.parse(JSON.stringify(cfg));
-  const th=previewCfg.themes[previewCfg.currentTheme];
-  th.name=gv('tc-name');
-  th.cols=+gv('tc-cols')||3;
-  th.perPage=+gv('tc-perpage')||12;
-  applyTheme(previewCfg);
-  renderGrid();
-  renderContact();
-  toast('👁 Preview applied — not saved yet');
-});
-
-document.getElementById('js-discard-btn').addEventListener('click',()=>{
-  previewCfg=null;
-  applyTheme(cfg);
-  renderGrid();
-  renderContact();
-  populateAdmin();
-  toast('Changes discarded');
-});
-
-document.getElementById('js-save-cfg').onclick=()=>{
-  readAdminIntoCfg();
-  if(previewCfg){
-    cfg=JSON.parse(JSON.stringify(previewCfg));
-    previewCfg=null;
-  }
-  downloadJson(cfg);
-  applyTheme(cfg);
-  renderContact();
-  page=1;renderGrid();renderFieldList();
-  setSettingsStatus('ok','Saved');
-  toast('settings.json downloaded — replace file beside HTML ✓');
+  },
+  showDesc: true, email: '', phone: '', whatsapp: '', wechat: '',
+  telegram: '', instagram: '', website: '', folderName: '',
+  fieldVis: { title: true, price: true, description: true },
+  fieldOrder: ['title', 'price', 'description']
 };
 
-function readAdminIntoCfg(){
-  cfg.storeName=gv('ac-storename');cfg.heroTitle=gv('ac-herotitle');cfg.heroSub=gv('ac-herosub');
-  cfg.showDesc=document.getElementById('ac-showdesc').checked;
-  cfg.email=gv('ac-email');cfg.phone=gv('ac-phone');cfg.whatsapp=gv('ac-whatsapp');
-  cfg.wechat=gv('ac-wechat');cfg.telegram=gv('ac-telegram');
-  cfg.instagram=gv('ac-instagram');cfg.website=gv('ac-website');
-  const th=cfg.themes[cfg.currentTheme];
-  th.name=gv('tc-name');
-  th.cols=+gv('tc-cols')||3;
-  th.perPage=+gv('tc-perpage')||12;
+let config = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+let savedConfig = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+let products = [];
+let isAdmin = new URLSearchParams(location.search).has('admin');
+
+// =========================================================
+// BOOT
+// =========================================================
+async function boot() {
+  await loadSettings();
+  applyThemeFromConfig();
+  updateDisplay();
+  if (isAdmin) setupAdminMode();
+  setupDropzone();
+  setupViewToggle();
+  initModal(() => config.themes[config.currentTheme] || {});
+
+  // Check folder memory
+  if (config.folderName) {
+    document.getElementById('reload-notice').style.display = 'block';
+    document.getElementById('reload-folder-name').textContent = config.folderName;
+    document.getElementById('reload-btn').onclick = () => triggerFolderPicker();
+  }
 }
 
-function downloadJson(data){
-  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='settings.json';
-  a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+async function loadSettings() {
+  try {
+    const res = await fetch('./settings.json?t=' + Date.now());
+    if (!res.ok) throw new Error('not found');
+    const data = await res.json();
+    config = deepMerge(config, data);
+    config._loaded = true;
+    savedConfig = JSON.parse(JSON.stringify(config));
+  } catch {
+    config._loaded = false;
+  }
 }
 
-function applyTheme(c){
-  const th=c.themes[c.currentTheme];
-  const r=document.documentElement;
-  r.style.setProperty('--bg',th.bgColor);
-  r.style.setProperty('--card-bg',th.cardColor);
-  r.style.setProperty('--text',th.textColor);
-  r.style.setProperty('--accent',th.accentColor);
-  r.style.setProperty('--deep',th.deepColor);
-  r.style.setProperty('--font-head',th.fontDisplay);
-  r.style.setProperty('--font-body',th.fontBody);
-  r.style.setProperty('--cols',th.cols||3);
-  r.style.setProperty('--gap',(th.gap||1.5)+'rem');
-  r.style.setProperty('--radius',(th.radius||14)+'px');
-  r.style.setProperty('--title-sz',(th.titleSize||1.1)+'rem');
-  r.style.setProperty('--desc-sz',(th.descSize||.82)+'rem');
-  r.style.setProperty('--desc-ln',th.descLines??2);
-  r.style.setProperty('--contact-bg',th.contactBg);
-  r.style.setProperty('--contact-fs',(th.contactFontSize||.76)+'rem');
-  r.style.setProperty('--modal-title-sz',(th.modalTitleSize||1.5)+'rem');
-  r.style.setProperty('--modal-desc-sz',(th.modalDescSize||.9)+'rem');
-  r.style.setProperty('--modal-img-w',th.modalImgSize||'48%');
-  r.style.setProperty('--muted',hexMix(th.textColor,th.bgColor,.45));
-  r.style.setProperty('--border',hexAlpha(th.textColor,.10));
-  r.style.setProperty('--shadow',hexAlpha(th.deepColor,.13));
-  r.style.setProperty('--img-bg',hexAlpha(th.accentColor,.10));
-  r.style.setProperty('--hdr-bg',hexAlpha(th.bgColor,.93));
-  document.getElementById('aspect-style').textContent=`.card-img{aspect-ratio:${th.aspect||'1/1'}}`;
-  document.getElementById('js-logo').textContent=c.storeName||'Product Showcase';
-  document.getElementById('js-hero-h1').innerHTML=buildTitle(c.heroTitle||'Our Collection');
-  document.getElementById('js-hero-sub').textContent=c.heroSub||'';
+function deepMerge(target, source) {
+  const out = { ...target };
+  for (const key of Object.keys(source)) {
+    if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+      out[key] = deepMerge(target[key] || {}, source[key]);
+    } else {
+      out[key] = source[key];
+    }
+  }
+  return out;
 }
-function buildTitle(t){const w=t.trim().split(/\s+/);if(w.length>1){const last=w.pop();return w.join(' ')+' <em>'+esc(last)+'</em>'}return esc(t)}
 
-function renderContact(){
-  const footer=document.getElementById('js-contact-footer');
-  const links=document.getElementById('js-contact-links');
-  const tag=document.getElementById('js-contact-tagline');
-  const th=getCurrentTheme();
-  links.innerHTML='';
-  tag.textContent=th.contactTagline||'Get in touch';
-  const items=[
-    {key:'email',href:v=>`mailto:${v}`,icon:icoEmail()},
-    {key:'phone',href:v=>`tel:${v}`,icon:icoPhone()},
-    {key:'whatsapp',href:v=>`https://wa.me/${v.replace(/\D/g,'')}`,icon:icoWA()},
-    {key:'telegram',href:v=>`https://t.me/${v.replace('@','')}`,icon:icoTG()},
-    {key:'wechat',href:()=>'#',onClick:v=>toast(`WeChat: ${v}`),icon:icoWC()},
-    {key:'instagram',href:v=>`https://instagram.com/${v.replace('@','')}`,icon:icoIG()},
-    {key:'website',href:v=>v,icon:icoWeb()},
-  ];
-  let count=0;
-  items.forEach(item=>{
-    const val=cfg[item.key];if(!val)return;
-    if(count++){const s=document.createElement('span');s.className='c-sep';s.textContent='·';links.appendChild(s)}
-    const a=document.createElement('a');
-    a.className='c-link';a.href=item.href(val);a.target='_blank';a.rel='noopener';
-    a.innerHTML=item.icon+`<span>${esc(val)}</span>`;
-    if(item.onClick){a.onclick=e=>{e.preventDefault();item.onClick(val)}}
-    links.appendChild(a);count++;
+// =========================================================
+// DISPLAY UPDATES
+// =========================================================
+function applyThemeFromConfig() {
+  const theme = config.themes[config.currentTheme] || config.themes.editorial;
+  applyTheme(theme);
+}
+
+function updateDisplay() {
+  document.getElementById('store-name-display').textContent = config.storeName || 'Product Showcase';
+  document.getElementById('hero-title-display').textContent = config.heroTitle || 'Our Collection';
+  document.getElementById('hero-sub-display').textContent = config.heroSub || 'Discover something beautiful';
+  renderContactFooter();
+}
+
+function renderContactFooter() {
+  const footer = document.getElementById('contact-footer');
+  const theme = config.themes[config.currentTheme] || {};
+  footer.style.background = theme.footerBg || '';
+  footer.style.color = theme.footerText || '';
+  footer.style.fontSize = (theme.footerFontSize || '0.875') + 'rem';
+
+  const taglineEl = document.getElementById('footer-tagline');
+  taglineEl.textContent = theme.footerTagline || '';
+
+  const links = [];
+  if (config.email) links.push(`<a href="mailto:${config.email}">✉ Email</a>`);
+  if (config.phone) links.push(`<a href="tel:${config.phone}">📞 ${config.phone}</a>`);
+  if (config.whatsapp) links.push(`<a href="https://wa.me/${config.whatsapp}" target="_blank">💬 WhatsApp</a>`);
+  if (config.wechat) links.push(`<span style="cursor:pointer" onclick="navigator.clipboard.writeText('${config.wechat}');alert('WeChat ID copied!')">💚 WeChat</span>`);
+  if (config.telegram) links.push(`<a href="https://t.me/${config.telegram}" target="_blank">✈ Telegram</a>`);
+  if (config.instagram) links.push(`<a href="https://instagram.com/${config.instagram}" target="_blank">📸 Instagram</a>`);
+  if (config.website) links.push(`<a href="${config.website}" target="_blank">🌐 Website</a>`);
+
+  // Remove old dynamic links
+  footer.querySelectorAll('.contact-link, .footer-sep').forEach(el => el.remove());
+
+  if (links.length) {
+    links.forEach((html, i) => {
+      const span = document.createElement('span');
+      span.className = 'contact-link';
+      span.innerHTML = html;
+      footer.appendChild(span);
+      if (i < links.length - 1) {
+        const sep = document.createElement('span');
+        sep.className = 'footer-sep';
+        sep.textContent = ' · ';
+        footer.appendChild(sep);
+      }
+    });
+    footer.classList.add('footer-visible');
+  } else {
+    footer.classList.remove('footer-visible');
+  }
+}
+
+// =========================================================
+// FOLDER LOADING
+// =========================================================
+const IMAGE_EXTS = ['jpg','jpeg','png','gif','webp','tiff','tif','bmp','svg'];
+
+async function loadFolder(dirHandle) {
+  const imageFiles = [];
+  const txtFiles = {};
+  let totalFiles = 0;
+  let skipped = 0;
+
+  // Recursively scan
+  async function scan(handle, prefix) {
+    for await (const [name, entry] of handle.entries()) {
+      if (entry.kind === 'file') {
+        totalFiles++;
+        const ext = name.split('.').pop().toLowerCase();
+        if (IMAGE_EXTS.includes(ext)) {
+          imageFiles.push({ name, entry, prefix });
+        } else if (ext === 'txt') {
+          txtFiles[(prefix ? prefix + '/' : '') + name] = entry;
+        } else {
+          skipped++;
+        }
+      } else if (entry.kind === 'directory') {
+        await scan(entry, (prefix ? prefix + '/' : '') + name);
+      }
+    }
+  }
+
+  await scan(dirHandle, '');
+
+  // Sort naturally
+  imageFiles.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+
+  // Build products
+  const allFieldKeys = new Set(['title','price','description']);
+  const prods = [];
+
+  for (const { name, entry, prefix } of imageFiles) {
+    const file = await entry.getFile();
+    const src = URL.createObjectURL(file);
+    const baseName = name.replace(/\.[^.]+$/, '');
+    const txtKey = (prefix ? prefix + '/' : '') + baseName + '.txt';
+    const txtEntry = txtFiles[txtKey];
+
+    const product = { _src: src, _filename: name };
+    if (txtEntry) {
+      const txtFile = await txtEntry.getFile();
+      const text = await txtFile.text();
+      const parsed = parseTxt(text);
+      Object.assign(product, parsed);
+      Object.keys(parsed).forEach(k => allFieldKeys.add(k));
+    } else {
+      product.title = baseName;
+    }
+    prods.push(product);
+  }
+
+  products = prods;
+  config.folderName = dirHandle.name;
+
+  // Update field order/vis with newly discovered fields
+  const newFields = [...allFieldKeys].filter(f => !config.fieldOrder.includes(f));
+  newFields.forEach(f => {
+    config.fieldOrder.push(f);
+    if (config.fieldVis[f] === undefined) config.fieldVis[f] = true;
   });
-  footer.className='contact-footer'+(count>0?' has-links':'');
+
+  // Update session count
+  const sessionCount = document.getElementById('session-count');
+  if (sessionCount) sessionCount.textContent = products.length;
+  updateSessionInfo(config);
+
+  if (isAdmin) updateFieldsTab([...allFieldKeys], config);
+
+  showExplainer(
+    dirHandle.name, imageFiles.length, Object.keys(txtFiles).length,
+    totalFiles, skipped,
+    () => showProducts(),
+    () => showDropzone()
+  );
 }
 
-document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){closeModal();closeAdmin()}
-});
+function parseTxt(text) {
+  const result = {};
+  const lines = text.split('\n');
+  let currentKey = null;
+  let valueLines = [];
 
-function toast(msg){
-  const t=document.getElementById('js-toast');
-  t.textContent=msg;t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),3200);
+  for (const line of lines) {
+    const keyMatch = line.match(/^([a-zA-Z0-9_ ]+):\s*$/);
+    if (keyMatch) {
+      if (currentKey && valueLines.length) {
+        result[currentKey.trim()] = valueLines.join('\n').trim();
+      }
+      currentKey = keyMatch[1].toLowerCase().trim();
+      valueLines = [];
+    } else if (line.includes(':') && !currentKey) {
+      // inline key: value
+      const [k, ...rest] = line.split(':');
+      result[k.trim().toLowerCase()] = rest.join(':').trim();
+    } else if (currentKey !== null) {
+      valueLines.push(line);
+    }
+  }
+  if (currentKey && valueLines.length) {
+    result[currentKey.trim()] = valueLines.join('\n').trim();
+  }
+  return result;
 }
 
-function fileToTitle(n){return(n||'').replace(/\.[^.]+$/,'').replace(/[-_]+/g,' ').replace(/\b\w/g,l=>l.toUpperCase())}
-function cap(s){return s?s.charAt(0).toUpperCase()+s.slice(1):s}
-function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
-function hexAlpha(hex,a){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return`rgba(${r},${g},${b},${a})`}
-function hexMix(h1,h2,t){
-  const r1=parseInt(h1.slice(1,3),16),g1=parseInt(h1.slice(3,5),16),b1=parseInt(h1.slice(5,7),16);
-  const r2=parseInt(h2.slice(1,3),16),g2=parseInt(h2.slice(3,5),16),b2=parseInt(h2.slice(5,7),16);
-  return'#'+[Math.round(r1*t+r2*(1-t)),Math.round(g1*t+g2*(1-t)),Math.round(b1*t+b2*(1-t))].map(v=>v.toString(16).padStart(2,'0')).join('');
+async function triggerFolderPicker() {
+  try {
+    const dirHandle = await window.showDirectoryPicker();
+    await loadFolder(dirHandle);
+  } catch (e) {
+    if (e.name !== 'AbortError') showToast('Could not open folder: ' + e.message);
+  }
 }
 
-const ico=p=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">${p}</svg>`;
-const icof=p=>`<svg viewBox="0 0 24 24" fill="currentColor">${p}</svg>`;
-const icoEmail=()=>ico(`<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>`);
-const icoPhone=()=>ico(`<path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.69 12 19.79 19.79 0 011.61 3.45 2 2 0 013.59 1h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L7.91 8.52a16 16 0 006 6l1.88-1.88a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>`);
-const icoWA=()=>icof(`<path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>`);
-const icoTG=()=>icof(`<path d="M11.944 0A12 12 0 000 12a12 12 0 0012 12 12 12 0 0012-12A12 12 0 0012 0a12 12 0 00-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 01.171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>`);
-const icoWC=()=>icof(`<path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 01.213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 00.167-.054l1.903-1.114a.864.864 0 01.717-.098 10.16 10.16 0 002.837.403c.276 0 .543-.027.811-.05-.857-2.578.157-4.972 1.932-6.446 1.703-1.415 3.882-1.98 5.853-1.838-.576-3.583-4.196-6.348-8.596-6.348zm-3.056 4.148c.535 0 .969.44.969.982a.976.976 0 01-.969.983.976.976 0 01-.969-.983c0-.542.434-.982.969-.982zm5.363 0c.535 0 .969.44.969.982a.976.976 0 01-.969.983.976.976 0 01-.969-.983c0-.542.434-.982.969-.982zm2.954 3.367c-1.797-.052-3.746.512-5.28 1.786-1.72 1.428-2.687 3.72-1.78 6.22.942 2.453 3.666 4.229 6.884 4.229.826 0 1.622-.12 2.361-.336a.722.722 0 01.598.082l1.584.926a.272.272 0 00.14.047c.134 0 .24-.111.24-.247 0-.06-.023-.12-.038-.177l-.327-1.233a.582.582 0 01-.023-.156.49.49 0 01.201-.398C23.024 18.48 24 16.82 24 14.98c0-3.21-2.931-5.837-7.062-6.122zm-3.89 2.295c.535 0 .969.44.969.982a.976.976 0 01-.969.983.976.976 0 01-.969-.983c0-.542.434-.982.969-.982zm5.814 0c.535 0 .969.44.969.982a.976.976 0 01-.969.983.976.976 0 01-.969-.983c0-.542.434-.982.969-.982z"/>`);
-const icoIG=()=>ico(`<rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>`);
-const icoWeb=()=>ico(`<circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>`);
+// =========================================================
+// DROP ZONE
+// =========================================================
+function setupDropzone() {
+  const dz = document.getElementById('dropzone');
+
+  dz.addEventListener('click', triggerFolderPicker);
+
+  dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.classList.add('drag-over'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+  dz.addEventListener('drop', async (e) => {
+    e.preventDefault();
+    dz.classList.remove('drag-over');
+    const item = e.dataTransfer.items[0];
+    if (item?.kind === 'file') {
+      const entry = item.getAsFileSystemHandle ? await item.getAsFileSystemHandle() : null;
+      if (entry?.kind === 'directory') {
+        await loadFolder(entry);
+      } else {
+        showToast('Please drop a folder, not a file.');
+      }
+    }
+  });
+}
+
+// =========================================================
+// VIEW TOGGLING
+// =========================================================
+function setupViewToggle() {
+  document.getElementById('view-grid-btn').addEventListener('click', () => {
+    document.getElementById('view-grid-btn').classList.add('active');
+    document.getElementById('view-list-btn').classList.remove('active');
+    setViewMode('grid');
+  });
+  document.getElementById('view-list-btn').addEventListener('click', () => {
+    document.getElementById('view-list-btn').classList.add('active');
+    document.getElementById('view-grid-btn').classList.remove('active');
+    setViewMode('list');
+  });
+}
+
+// =========================================================
+// SCREEN STATES
+// =========================================================
+function showDropzone() {
+  document.getElementById('dropzone-wrap').style.display = 'flex';
+  document.getElementById('main-content').style.display = 'none';
+  document.getElementById('view-toggle').style.display = 'none';
+}
+
+function showProducts() {
+  document.getElementById('dropzone-wrap').style.display = 'none';
+  document.getElementById('main-content').style.display = 'block';
+  document.getElementById('view-toggle').style.display = 'flex';
+  initDisplay(products, config);
+}
+
+// =========================================================
+// ADMIN MODE
+// =========================================================
+function setupAdminMode() {
+  // Inject admin toggle button
+  const btn = document.createElement('button');
+  btn.id = 'admin-toggle-btn';
+  btn.textContent = '⚙ Admin';
+  document.querySelector('.header-actions').appendChild(btn);
+
+  initAdmin(config, {
+    onSave: () => { savedConfig = JSON.parse(JSON.stringify(config)); },
+    onPreview: () => { applyThemeFromConfig(); updateDisplay(); if (products.length) initDisplay(products, config); },
+    onDiscard: () => {
+      config = JSON.parse(JSON.stringify(savedConfig));
+      applyThemeFromConfig();
+      updateDisplay();
+      if (products.length) initDisplay(products, config);
+    },
+    rerender: () => {
+      applyThemeFromConfig();
+      updateDisplay();
+      if (products.length) initDisplay(products, config);
+    },
+    onFolderLoad: async (dirHandle) => {
+      await loadFolder(dirHandle);
+    }
+  });
+}
+
+// =========================================================
+// START
+// =========================================================
+boot();
 </script>
 </body>
 </html>
